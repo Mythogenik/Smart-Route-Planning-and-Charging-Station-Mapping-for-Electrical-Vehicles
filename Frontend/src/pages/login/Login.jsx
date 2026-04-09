@@ -23,7 +23,7 @@ export default function Login() {
     setLoading(true);
     setTimeout(() => {
       const result = login({ email: form.email, password: form.password });
-      if (result.success) { navigate('/'); }
+      if (result.success) { navigate('/dashboard'); }
       else { setError(result.error); setLoading(false); }
     }, 600);
   }

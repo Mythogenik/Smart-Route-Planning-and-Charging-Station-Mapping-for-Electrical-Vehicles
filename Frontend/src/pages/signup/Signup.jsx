@@ -7,7 +7,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const { signup } = useAuth();
 
-  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', phone: '' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '', phone: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -15,6 +15,8 @@ export default function Signup() {
 
   function validate() {
     const e = {};
+    if (!form.firstName.trim()) e.firstName = 'First name is required.';
+    if (!form.lastName.trim())  e.lastName  = 'Last name is required.';
     if (!form.email) e.email = 'Email is required.';
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Enter a valid email.';
     if (!form.password) e.password = 'Password is required.';
@@ -37,7 +39,7 @@ export default function Signup() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
     setTimeout(() => {
-      const result = signup({ email: form.email, password: form.password, phone: form.phone });
+      const result = signup({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, phone: form.phone });
       if (result.success) { navigate('/'); }
       else { setErrors({ email: result.error }); setLoading(false); }
     }, 600);
@@ -148,6 +150,33 @@ export default function Signup() {
             </p>
 
             <form className="auth-form" onSubmit={handleSubmit} noValidate>
+
+              <div className="field-row">
+                <div className="field-group">
+                  <label className="field-label" htmlFor="firstName">First name</label>
+                  <input
+                    className={`field-input ${errors.firstName ? 'field-input--error' : ''}`}
+                    id="firstName" name="firstName" type="text"
+                    autoComplete="given-name"
+                    placeholder="Jane"
+                    value={form.firstName}
+                    onChange={handleChange}
+                  />
+                  {errors.firstName && <span className="field-error">{errors.firstName}</span>}
+                </div>
+                <div className="field-group">
+                  <label className="field-label" htmlFor="lastName">Last name</label>
+                  <input
+                    className={`field-input ${errors.lastName ? 'field-input--error' : ''}`}
+                    id="lastName" name="lastName" type="text"
+                    autoComplete="family-name"
+                    placeholder="Doe"
+                    value={form.lastName}
+                    onChange={handleChange}
+                  />
+                  {errors.lastName && <span className="field-error">{errors.lastName}</span>}
+                </div>
+              </div>
 
               <div className="field-group">
                 <label className="field-label" htmlFor="email">Email address</label>

@@ -10,7 +10,7 @@
   background: #fff;
 }
 
-/* ── NAV (same as landing) ───────────────────────── */
+/* ── NAV ─────────────────────────────────────────── */
 .nav {
   display: flex;
   align-items: center;
@@ -101,15 +101,16 @@
   min-height: calc(100vh - 60px);
 }
 
-/* ── LEFT: dark map panel ────────────────────────── */
+/* ── LEFT: dark panel ────────────────────────────── */
 .auth-map-panel {
   position: relative;
-  width: 42%;
+  width: 44%;
   flex-shrink: 0;
   overflow: hidden;
-  background: #1a1a1a;
+  background: #111;
 }
 
+/* static map grid SVG */
 .auth-map-svg {
   position: absolute;
   inset: 0;
@@ -117,33 +118,67 @@
   height: 100%;
 }
 
+/* content sits above svg */
 .auth-map-content {
   position: relative;
   z-index: 2;
-  padding: 60px 48px;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  padding-bottom: 64px;
+  padding: 0 48px 56px;
 }
 
+/* big headline */
 .auth-map-title {
-  font-family: 'DM Sans', sans-serif;
-  font-size: clamp(48px, 5vw, 72px);
+  font-size: clamp(44px, 4.5vw, 68px);
   font-weight: 900;
-  line-height: 0.9;
+  line-height: 0.88;
   letter-spacing: -1px;
   color: #fff;
   text-transform: uppercase;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
+/* tagline */
 .auth-map-sub {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 400;
-  color: #888;
-  letter-spacing: 0.2px;
+  color: #666;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+/* stat pills — same style as landing hero */
+.auth-map-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-map-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  background: rgba(61, 220, 132, 0.07);
+  border: 1px solid rgba(61, 220, 132, 0.18);
+  border-left: 3px solid #3ddc84;
+  padding: 10px 14px;
+  max-width: 300px;
+}
+
+.auth-map-stat-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: #3ddc84;
+  letter-spacing: -0.2px;
+  white-space: nowrap;
+}
+
+.auth-map-stat-label {
+  font-size: 12px;
+  font-weight: 400;
+  color: #666;
 }
 
 /* ── RIGHT: form panel ───────────────────────────── */
@@ -163,7 +198,6 @@
 }
 
 .auth-form-title {
-  font-family: 'DM Sans', sans-serif;
   font-size: 28px;
   font-weight: 800;
   color: #111;
@@ -183,10 +217,9 @@
   text-decoration: underline;
   text-underline-offset: 2px;
 }
-
 .auth-link:hover { color: #333; }
 
-/* ── FORM ────────────────────────────────────────── */
+/* ── FORM FIELDS ─────────────────────────────────── */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -220,9 +253,9 @@
   background: #fff;
   border: 1.5px solid #e5e5e5;
   outline: none;
-  transition: border-color 0.15s;
   border-radius: 0;
   box-sizing: border-box;
+  transition: border-color 0.15s;
 }
 
 .field-input-wrap .field-input {
@@ -252,7 +285,7 @@
   font-size: 16px;
   padding: 0;
   line-height: 1;
-  opacity: 0.6;
+  opacity: 0.5;
   transition: opacity 0.15s;
 }
 .field-eye:hover { opacity: 1; }
@@ -298,8 +331,29 @@
   color: #e53e3e;
   background: #fff5f5;
   border: 1px solid #fed7d7;
+  border-left: 3px solid #e53e3e;
   padding: 10px 14px;
   margin-top: -4px;
+}
+
+/* ── divider ─────────────────────────────────────── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
+}
+
+.auth-divider-line {
+  flex: 1;
+  height: 1px;
+  background: #e5e5e5;
+}
+
+.auth-divider-text {
+  font-size: 12px;
+  color: #bbb;
+  white-space: nowrap;
 }
 
 /* ── submit button ───────────────────────────────── */
@@ -316,11 +370,11 @@
   height: 52px;
   width: 100%;
   margin-top: 8px;
-  transition: background 0.15s, transform 0.1s;
+  transition: background 0.15s;
 }
 .auth-submit:hover:not(:disabled) { background: #333; }
 .auth-submit:active:not(:disabled) { transform: translateY(1px); }
-.auth-submit:disabled { background: #999; cursor: not-allowed; }
+.auth-submit:disabled { background: #aaa; cursor: not-allowed; }
 
 /* ── responsive ──────────────────────────────────── */
 @media (max-width: 768px) {

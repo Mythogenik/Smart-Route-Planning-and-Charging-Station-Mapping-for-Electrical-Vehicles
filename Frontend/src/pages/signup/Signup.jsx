@@ -7,9 +7,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const { signup } = useAuth();
 
-  const [form, setForm] = useState({
-    email: '', password: '', confirmPassword: '', phone: ''
-  });
+  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '', phone: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -40,19 +38,14 @@ export default function Signup() {
     setLoading(true);
     setTimeout(() => {
       const result = signup({ email: form.email, password: form.password, phone: form.phone });
-      if (result.success) {
-        navigate('/');
-      } else {
-        setErrors({ email: result.error });
-        setLoading(false);
-      }
+      if (result.success) { navigate('/'); }
+      else { setErrors({ email: result.error }); setLoading(false); }
     }, 600);
   }
 
   const strength = !form.password ? 0
     : form.password.length < 6 ? 1
-    : form.password.length < 10 ? 2
-    : 3;
+    : form.password.length < 10 ? 2 : 3;
   const strengthLabel = ['', 'Weak', 'Good', 'Strong'];
   const strengthColor = ['', '#e53e3e', '#facc15', '#3ddc84'];
 
@@ -71,67 +64,87 @@ export default function Signup() {
         </div>
       </nav>
 
-      {/* SPLIT LAYOUT */}
       <div className="auth-layout">
 
-        {/* LEFT — dark map panel */}
+        {/* LEFT PANEL */}
         <div className="auth-map-panel">
+
+          {/* static map grid */}
           <svg className="auth-map-svg" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice">
-            <rect width="700" height="900" fill="#1a1a1a"/>
-            <g stroke="#2a2a2a" strokeWidth="1.5" fill="none">
-              <path d="M0 100 Q175 80 350 105 T700 95"/>
-              <path d="M0 220 Q200 195 400 225 T700 210"/>
-              <path d="M0 340 Q175 320 350 345 T700 330"/>
-              <path d="M0 460 Q200 440 400 465 T700 450"/>
-              <path d="M0 580 Q175 560 350 585 T700 570"/>
-              <path d="M0 700 Q200 680 400 705 T700 690"/>
-              <path d="M60  0 Q72  200 58  900"/>
-              <path d="M160 0 Q175 300 158 900"/>
-              <path d="M280 0 Q295 200 278 900"/>
-              <path d="M400 0 Q415 300 398 900"/>
-              <path d="M520 0 Q535 200 518 900"/>
-              <path d="M630 0 Q645 300 628 900"/>
-              <path d="M0 0 Q200 180 350 300 Q500 420 700 380"/>
+            <rect width="700" height="900" fill="#111"/>
+            <g stroke="#1e1e1e" strokeWidth="1" fill="none">
+              <path d="M0 80  Q175 60  350 82  T700 74"/>
+              <path d="M0 180 Q200 158 400 183 T700 172"/>
+              <path d="M0 280 Q175 258 350 282 T700 272"/>
+              <path d="M0 380 Q200 358 400 383 T700 372"/>
+              <path d="M0 480 Q175 458 350 482 T700 472"/>
+              <path d="M0 580 Q200 558 400 583 T700 572"/>
+              <path d="M0 680 Q175 658 350 682 T700 672"/>
+              <path d="M0 780 Q200 758 400 783 T700 772"/>
+              <path d="M60  0 Q74  150 58  900"/>
+              <path d="M160 0 Q176 150 158 900"/>
+              <path d="M270 0 Q286 150 268 900"/>
+              <path d="M380 0 Q396 150 378 900"/>
+              <path d="M490 0 Q506 150 488 900"/>
+              <path d="M600 0 Q616 150 598 900"/>
             </g>
-            <g stroke="#333" strokeWidth="2.5" fill="none">
-              <path d="M0 160 Q350 140 700 165"/>
-              <path d="M220 0 Q235 250 218 900"/>
-              <path d="M480 0 Q495 250 478 900"/>
+            <g stroke="#252525" strokeWidth="2" fill="none">
+              <path d="M0 130 Q350 108 700 133"/>
+              <path d="M0 430 Q350 408 700 433"/>
+              <path d="M0 730 Q350 708 700 733"/>
+              <path d="M215 0 Q231 200 214 900"/>
+              <path d="M485 0 Q501 200 484 900"/>
             </g>
-            <g fill="#2e2e2e">
-              <circle cx="160" cy="220" r="4"/>
-              <circle cx="280" cy="340" r="4"/>
-              <circle cx="400" cy="220" r="4"/>
-              <circle cx="520" cy="460" r="4"/>
+            {/* static pins — different positions from login */}
+            <g fill="#3ddc84" opacity="0.6">
+              <circle cx="160" cy="280" r="4"/>
+              <circle cx="380" cy="130" r="6"/>
+              <circle cx="485" cy="480" r="5"/>
+              <circle cx="600" cy="380" r="4"/>
+              <circle cx="270" cy="630" r="5"/>
+              <circle cx="160" cy="780" r="4"/>
+              <circle cx="490" cy="730" r="6"/>
             </g>
-            <g fill="#3ddc84">
-              <circle cx="160" cy="460" r="6">
-                <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.2s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="400" cy="580" r="5">
-                <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1.9s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="560" cy="300" r="7">
-                <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.6s" repeatCount="indefinite"/>
-              </circle>
-              <circle cx="280" cy="720" r="5">
-                <animate attributeName="opacity" values="0.8;0.3;0.8" dur="3s" repeatCount="indefinite"/>
-              </circle>
-            </g>
+            {/* two static route lines for variety */}
+            <path d="M0 440 Q160 418 270 432 Q380 446 485 420 Q570 400 700 412"
+              stroke="#3ddc84" strokeWidth="2" fill="none"
+              strokeDasharray="12 6" strokeLinecap="round" opacity="0.35"/>
+            <path d="M0 640 Q215 618 380 634 Q490 648 700 628"
+              stroke="#3ddc84" strokeWidth="1.5" fill="none"
+              strokeDasharray="10 8" strokeLinecap="round" opacity="0.25"/>
           </svg>
 
           <div className="auth-map-content">
             <h2 className="auth-map-title">JOIN THE<br/>SMARTER<br/>GRID.</h2>
-            <p className="auth-map-sub">Plan routes. Find charge. Drive further.</p>
+            <p className="auth-map-sub">
+              Plan routes. Find charge.<br/>
+              Drive further with every trip.
+            </p>
+            <div className="auth-map-stats">
+              <div className="auth-map-stat">
+                <span className="auth-map-stat-value">50K+</span>
+                <span className="auth-map-stat-label">charging stations mapped</span>
+              </div>
+              <div className="auth-map-stat">
+                <span className="auth-map-stat-value">2M+</span>
+                <span className="auth-map-stat-label">routes planned</span>
+              </div>
+              <div className="auth-map-stat">
+                <span className="auth-map-stat-value">Free</span>
+                <span className="auth-map-stat-label">always free to start</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* RIGHT — form panel */}
+        {/* RIGHT: form */}
         <div className="auth-form-panel">
           <div className="auth-form-box">
+
             <h1 className="auth-form-title">Create account</h1>
             <p className="auth-form-sub">
-              Already have an account? <Link to="/login" className="auth-link">Log in</Link>
+              Already have an account?{' '}
+              <Link to="/login" className="auth-link">Log in</Link>
             </p>
 
             <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -169,7 +182,7 @@ export default function Signup() {
                 {form.password && (
                   <div className="strength-row">
                     <div className="strength-bar">
-                      {[1,2,3].map(i => (
+                      {[1, 2, 3].map(i => (
                         <div key={i} className="strength-seg"
                           style={{ background: i <= strength ? strengthColor[strength] : '#e5e5e5' }}/>
                       ))}

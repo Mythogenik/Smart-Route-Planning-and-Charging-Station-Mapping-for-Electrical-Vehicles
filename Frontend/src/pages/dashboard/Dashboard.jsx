@@ -149,7 +149,7 @@ export default function Dashboard() {
               Welcome back, {currentUser?.firstName || currentUser?.email?.split('@')[0] || 'driver'} 👋
             </span>
           </div>
-          <button className="btn-create-route" onClick={() => setActiveNav('routes')}>
+          <button className="btn-create-route" onClick={() => navigate('/create-route')}>
             + CREATE ROUTE
           </button>
         </div>
@@ -284,7 +284,7 @@ export default function Dashboard() {
                 Create your first route and it will appear here.<br/>
                 EV Router will optimise your charging stops automatically.
               </p>
-              <button className="btn-create-route-lg">+ CREATE YOUR FIRST ROUTE</button>
+              <button className="btn-create-route-lg" onClick={() => navigate('/create-route')}>+ CREATE YOUR FIRST ROUTE</button>
             </div>
           </div>
         )}
@@ -296,28 +296,136 @@ export default function Dashboard() {
               <div className="empty-icon">⚡</div>
               <h2 className="empty-title">Charging stations</h2>
               <p className="empty-desc">
-                Station search and filtering will appear here.<br/>
-                Filter by network, connector type, and live availability.
+                Find nearby charging stations with real-time availability.<br/>
+                Filter by network, connector type, and charging speed.
               </p>
-              <button className="btn-create-route-lg">FIND STATIONS NEAR ME</button>
+              <button className="btn-create-route-lg" onClick={() => navigate('/stations')}>
+                FIND STATIONS NEAR ME
+              </button>
             </div>
           </div>
         )}
 
         {/* ── VEHICLES VIEW ── */}
-        {activeNav === 'vehicles' && (
-          <div className="content">
-            <div className="empty-panel">
-              <div className="empty-icon">◻</div>
-              <h2 className="empty-title">No vehicles added</h2>
-              <p className="empty-desc">
-                Add your EV to get accurate range calculations<br/>
-                and personalised charging recommendations.
-              </p>
-              <button className="btn-create-route-lg">+ ADD MY VEHICLE</button>
+        {activeNav === 'vehicles' && (() => {
+          const userCars = JSON.parse(localStorage.getItem('ev_cars') || '[]')
+            .filter(c => c.ownerEmail === currentUser?.email);
+
+          function shadeColor(hex, pct) {
+            try {
+              const num = parseInt(hex.replace('#',''), 16);
+              const r = Math.min(255, Math.max(0, (num >> 16) + pct));
+              const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + pct));
+              const b = Math.min(255, Math.max(0, (num & 0xff) + pct));
+              return `#${((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}`;
+            } catch { return hex; }
+          }
+
+          function removeCar(id) {
+            const updated = JSON.parse(localStorage.getItem('ev_cars') || '[]')
+              .filter(c => c.id !== id);
+            localStorage.setItem('ev_cars', JSON.stringify(updated));
+            setActiveNav('dashboard');
+            setTimeout(() => setActiveNav('vehicles'), 0);
+          }
+
+          return (
+            <div className="content">
+              <div className="vehicles-header">
+                <div>
+                  <h2 className="vehicles-title">My Vehicles</h2>
+                  <p className="vehicles-sub">{userCars.length} vehicle{userCars.length !== 1 ? 's' : ''} in your garage</p>
+                </div>
+                <button className="btn-create-route" onClick={() => navigate('/add-vehicle')}>
+                  + ADD VEHICLE
+                </button>
+              </div>
+
+              {userCars.length === 0 ? (
+                <div className="empty-panel">
+                  <div className="empty-icon">◻</div>
+                  <h2 className="empty-title">No vehicles added</h2>
+                  <p className="empty-desc">
+                    Add your EV to get accurate range calculations<br/>
+                    and personalised charging recommendations.
+                  </p>
+                  <button className="btn-create-route-lg" onClick={() => navigate('/add-vehicle')}>
+                    + ADD MY VEHICLE
+                  </button>
+                </div>
+              ) : (
+                <div className="vehicles-grid">
+                  {userCars.map(car => {
+                    const body  = car.color || '#1a1a2e';
+                    const dark  = shadeColor(body, -40);
+                    const light = shadeColor(body, 40);
+                    return (
+                      <div className="vehicle-card" key={car.id}>
+
+                        {/* car illustration */}
+                        <div className="vehicle-card-stage">
+                          <svg viewBox="0 0 320 160" className="vehicle-card-svg">
+                            <ellipse cx="160" cy="148" rx="130" ry="10" fill="rgba(0,0,0,0.08)"/>
+                            <rect x="20" y="80" width="280" height="60" rx="12" fill={body}/>
+                            <path d="M60 80 Q85 30 115 28 L205 28 Q240 28 252 80Z" fill={dark}/>
+                            <path d="M72 78 Q93 38 115 36 L200 36 Q228 36 242 78Z" fill="#7ec8e3" opacity="0.75"/>
+                            <circle cx="75"  cy="138" r="22" fill="#111"/>
+                            <circle cx="75"  cy="138" r="13" fill="#333"/>
+                            <circle cx="75"  cy="138" r="5"  fill="#555"/>
+                            <circle cx="245" cy="138" r="22" fill="#111"/>
+                            <circle cx="245" cy="138" r="13" fill="#333"/>
+                            <circle cx="245" cy="138" r="5"  fill="#555"/>
+                            <rect x="295" y="90" width="8" height="14" rx="4" fill="#fffde7" opacity="0.95"/>
+                            <circle cx="24" cy="110" r="5" fill="#3ddc84" opacity="0.95"/>
+                            <rect x="20" y="108" width="280" height="3" rx="1.5" fill={light} opacity="0.35"/>
+                            <line x1="160" y1="80" x2="160" y2="138" stroke={dark} strokeWidth="1.5" opacity="0.4"/>
+                          </svg>
+                        </div>
+
+                        {/* info */}
+                        <div className="vehicle-card-info">
+                          <div className="vehicle-card-header">
+                            <div>
+                              <div className="vehicle-card-nickname">{car.nickname}</div>
+                              <div className="vehicle-card-year">{car.year}</div>
+                            </div>
+                            <button className="vehicle-card-remove" onClick={() => removeCar(car.id)} title="Remove vehicle">✕</button>
+                          </div>
+
+                          <div className="vehicle-card-stats">
+                            <div className="vehicle-stat">
+                              <span className="vehicle-stat-val">{car.range}</span>
+                              <span className="vehicle-stat-unit">km</span>
+                              <span className="vehicle-stat-label">Range</span>
+                            </div>
+                            <div className="vehicle-stat-div"/>
+                            <div className="vehicle-stat">
+                              <span className="vehicle-stat-val">{car.battery}</span>
+                              <span className="vehicle-stat-unit">kWh</span>
+                              <span className="vehicle-stat-label">Battery</span>
+                            </div>
+                            <div className="vehicle-stat-div"/>
+                            <div className="vehicle-stat">
+                              <span className="vehicle-stat-val">{car.topSpeed}</span>
+                              <span className="vehicle-stat-unit">km/h</span>
+                              <span className="vehicle-stat-label">Top Speed</span>
+                            </div>
+                          </div>
+
+                          <div className="vehicle-card-consumption">
+                            <span className="vehicle-consumption-dot"/>
+                            {car.consumption} kWh/100km consumption
+                          </div>
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ── ACCOUNT VIEW ── */}
         {activeNav === 'account' && (

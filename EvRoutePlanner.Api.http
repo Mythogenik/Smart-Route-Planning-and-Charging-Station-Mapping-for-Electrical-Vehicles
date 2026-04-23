@@ -1,0 +1,6 @@
+@EvRoutePlanner.Api_HostAddress = http://localhost:5119
+
+GET {{EvRoutePlanner.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

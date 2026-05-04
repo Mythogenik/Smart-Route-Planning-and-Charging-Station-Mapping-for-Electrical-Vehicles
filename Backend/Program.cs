@@ -114,6 +114,7 @@ builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IRangeService, RangeService>();
 builder.Services.AddHttpClient<IFuelEconomyService, FuelEconomyService>();
 builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
+builder.Services.AddScoped<IRouteService, RouteService>();
 
 //builder.Services.AddScoped<ISeedingService, SeedingService>();
 

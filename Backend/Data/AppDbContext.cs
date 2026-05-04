@@ -11,6 +11,7 @@ namespace EvRoutePlanner.Api.Data
         public DbSet<Vehicle> Vehicles { get; set; } = null!;
         public DbSet<EvModel> EvModels { get; set; } = null!;
         public DbSet<ChargingStation> ChargingStations { get; set; } = null!;
+        public DbSet<Models.Route> Routes { get; set; } = null!;
     }
 }
 

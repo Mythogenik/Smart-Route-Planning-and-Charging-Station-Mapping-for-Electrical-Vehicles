@@ -30,6 +30,9 @@ public class AuthService : IAuthService
             Email = dto.Email.ToLower(),
             PasswordHash = hash,
             PasswordSalt = salt,
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            PhoneNumber = dto.PhoneNumber,
             Role = "User" // Default role
         };
 

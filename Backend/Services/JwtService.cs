@@ -23,7 +23,7 @@ public class JwtService
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.Username),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Role) // Role claim eklendi
+            new Claim(ClaimTypes.Role, user.Role)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Secret!));
@@ -43,6 +43,9 @@ public class JwtService
             Token = new JwtSecurityTokenHandler().WriteToken(token),
             Username = user.Username,
             Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            PhoneNumber = user.PhoneNumber,
             ExpiresAt = expires
         };
     }

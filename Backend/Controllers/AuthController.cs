@@ -19,15 +19,15 @@ namespace EvRoutePlanner.Api.Controllers
         public async Task<IActionResult> Register(UserRegisterDto dto)
         {
             var user = await _authService.Register(dto);
-            if (user == null) return BadRequest("Email zaten kayıtlı.");
-            return Ok("Kayıt başarılı.");
+            if (user == null) return BadRequest("Email already registered.");
+            return Ok("Registration successful.");
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserLoginDto dto)
         {
             var response = await _authService.Login(dto);
-            if (response == null) return Unauthorized("Hatalı email veya şifre.");
+            if (response == null) return Unauthorized("Wrong email or password");
             return Ok(response);
         }
     }

@@ -8,6 +8,8 @@ namespace EvRoutePlanner.Api.Models
 {
     public class Stop
     {
+        public int Id { get; set; }
+        public int RouteId { get; set; }
         public string name { get; set; } = null!;
         public string address { get; set; } = null!;
         public required double lat { get; set; }

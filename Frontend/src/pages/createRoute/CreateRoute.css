@@ -411,6 +411,34 @@
   .cr-map-wrap { flex: 1; min-height: 300px; }
 }
 
+/* ── MY LOCATION BUTTON ──────────────────────────── */
+.cr-my-loc-btn {
+  background: none;
+  border: 1.5px solid #e8e8e8;
+  color: #3ddc84;
+  font-size: 16px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  border-radius: 2px;
+  padding: 0;
+}
+.cr-my-loc-btn:hover { border-color: #3ddc84; background: #f0fdf6; }
+.cr-my-loc-btn.loading { opacity: 0.5; cursor: wait; }
+
+/* ── DRAG HINT ───────────────────────────────────── */
+.cr-input-hints {
+  font-size: 11px;
+  color: #bbb;
+  padding: 4px 2px;
+}
+.cr-input-hints strong { color: #888; }
+
 /* ── CAR WARNING ─────────────────────────────────── */
 .cr-car-warning {
   background: #fff5f5;

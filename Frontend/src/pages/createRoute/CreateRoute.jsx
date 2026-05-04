@@ -18,47 +18,75 @@ function loadGoogleMaps() {
       return;
     }
     const script = document.createElement('script');
-    script.id = 'gmap-script';
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_KEY}&libraries=places`;
+    script.id    = 'gmap-script';
+    script.src   = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_KEY}&libraries=places`;
     script.async = true;
     script.defer = true;
-    script.onload = () => resolve(window.google.maps);
+    script.onload  = () => resolve(window.google.maps);
     script.onerror = () => reject(new Error('Google Maps failed to load'));
     document.head.appendChild(script);
   });
 }
 
+/** Reverse geocode a lat/lng to a place-like object */
+function reverseGeocode(maps, lat, lng) {
+  return new Promise(resolve => {
+    const geocoder = new maps.Geocoder();
+    const latLng = new maps.LatLng(lat, lng);
+    geocoder.geocode({ location: latLng }, (results, status) => {
+      if (status === 'OK' && results[0]) {
+        resolve({
+          formatted_address: results[0].formatted_address,
+          name: results[0].formatted_address.split(',')[0],
+          geometry: {
+            location: results[0].geometry.location, // ← use the actual LatLng object from geocoder
+          },
+        });
+      } else {
+        resolve({
+          formatted_address: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+          name: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+          geometry: {
+            location: latLng, // ← use the LatLng object directly
+          },
+        });
+      }
+    });
+  });
+}
+
 export default function CreateRoute() {
-  const navigate = useNavigate();
+  const navigate        = useNavigate();
   const { currentUser } = useAuth();
 
-  const mapRef = useRef(null);
-  const mapInstance = useRef(null);
-  const startInputRef = useRef(null);
-  const endInputRef = useRef(null);
-  const startAcRef = useRef(null);
-  const endAcRef = useRef(null);
-  const directionsRenderer = useRef(null);
-  const startMarker = useRef(null);
-  const endMarker = useRef(null);
-  const stopMarkersRef = useRef([]);
-  const userMarkerRef = useRef(null);
-  const watchIdRef = useRef(null);
+  const mapRef              = useRef(null);
+  const mapInstance         = useRef(null);
+  const startInputRef       = useRef(null);
+  const endInputRef         = useRef(null);
+  const startAcRef          = useRef(null);
+  const endAcRef            = useRef(null);
+  const directionsRenderer  = useRef(null);
+  const startMarker         = useRef(null);
+  const endMarker           = useRef(null);
+  const stopMarkersRef      = useRef([]);
+  const userMarkerRef       = useRef(null);
+  const watchIdRef          = useRef(null);
   const directionsResultRef = useRef(null);
 
-  const [mapsLoaded, setMapsLoaded] = useState(false);
-  const [mapsError, setMapsError] = useState('');
-  const [startPlace, setStartPlace] = useState(null);
-  const [endPlace, setEndPlace] = useState(null);
-  const [startVal, setStartVal] = useState('');
-  const [endVal, setEndVal] = useState('');
-  const [routeInfo, setRouteInfo] = useState(null);
-  const [selectedCar, setSelectedCar] = useState(null);
-  const [calculating, setCalculating] = useState(false);
-  const [calculatedRoute, setCalculatedRoute] = useState(null);
-  const [carWarning, setCarWarning] = useState(false);
-  const [trackingGPS, setTrackingGPS] = useState(false);
-  const [savedMsg, setSavedMsg] = useState('');
+  const [mapsLoaded,       setMapsLoaded]       = useState(false);
+  const [mapsError,        setMapsError]        = useState('');
+  const [startPlace,       setStartPlace]       = useState(null);
+  const [endPlace,         setEndPlace]         = useState(null);
+  const [startVal,         setStartVal]         = useState('');
+  const [endVal,           setEndVal]           = useState('');
+  const [routeInfo,        setRouteInfo]        = useState(null);
+  const [selectedCar,      setSelectedCar]      = useState(null);
+  const [calculating,      setCalculating]      = useState(false);
+  const [calculatedRoute,  setCalculatedRoute]  = useState(null);
+  const [carWarning,       setCarWarning]       = useState(false);
+  const [trackingGPS,      setTrackingGPS]      = useState(false);
+  const [savedMsg,         setSavedMsg]         = useState('');
+  const [gpsLoading,       setGpsLoading]       = useState(false);
 
   const userCars = JSON.parse(localStorage.getItem('ev_cars') || '[]')
     .filter(c => c.ownerEmail === currentUser?.email);
@@ -68,6 +96,51 @@ export default function CreateRoute() {
       .then(() => setMapsLoaded(true))
       .catch(() => setMapsError('Could not load Google Maps. Check your API key.'));
   }, []);
+
+  // ── create a draggable marker ─────────────────────
+  function makeDraggableMarker(maps, position, isStart) {
+    const marker = new maps.Marker({
+      position,
+      map: mapInstance.current,
+      draggable: true,
+      icon: {
+        path: maps.SymbolPath.CIRCLE,
+        scale: 10,
+        fillColor: isStart ? '#3ddc84' : '#111',
+        fillOpacity: 1,
+        strokeColor: '#fff',
+        strokeWeight: 2.5,
+      },
+      label: {
+        text: isStart ? 'A' : 'B',
+        color: isStart ? '#0a0f0d' : '#ffffff',
+        fontSize: '11px', fontWeight: 'bold',
+      },
+      cursor: 'grab',
+    });
+
+    // on drag end — reverse geocode the new position
+    marker.addListener('dragend', async () => {
+      const pos = marker.getPosition();
+      const lat = pos.lat();
+      const lng = pos.lng();
+      const place = await reverseGeocode(maps, lat, lng);
+
+      if (isStart) {
+        setStartPlace(place);
+        setStartVal(place.formatted_address);
+        if (startInputRef.current) startInputRef.current.value = place.formatted_address;
+      } else {
+        setEndPlace(place);
+        setEndVal(place.formatted_address);
+        if (endInputRef.current) endInputRef.current.value = place.formatted_address;
+      }
+      setCalculatedRoute(null);
+      setSavedMsg('');
+    });
+
+    return marker;
+  }
 
   useEffect(() => {
     if (!mapsLoaded || !mapRef.current) return;
@@ -80,13 +153,13 @@ export default function CreateRoute() {
       streetViewControl: false,
       fullscreenControl: false,
       styles: [
-        { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-        { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-        { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9d8f0' }] },
-        { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f4f5f7' }] },
-        { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+        { featureType: 'poi',           elementType: 'labels', stylers: [{ visibility: 'off' }] },
+        { featureType: 'transit',       elementType: 'labels', stylers: [{ visibility: 'off' }] },
+        { featureType: 'water',         elementType: 'geometry', stylers: [{ color: '#c9d8f0' }] },
+        { featureType: 'landscape',     elementType: 'geometry', stylers: [{ color: '#f4f5f7' }] },
+        { featureType: 'road.highway',  elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
         { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-        { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#f0f0f0' }] },
+        { featureType: 'road.local',    elementType: 'geometry', stylers: [{ color: '#f0f0f0' }] },
       ],
     });
 
@@ -102,7 +175,8 @@ export default function CreateRoute() {
     startAcRef.current.addListener('place_changed', () => {
       const place = startAcRef.current.getPlace();
       if (!place.geometry) return;
-      setStartPlace(place); setStartVal(place.formatted_address || place.name);
+      setStartPlace(place);
+      setStartVal(place.formatted_address || place.name);
       setCalculatedRoute(null); setSavedMsg('');
     });
 
@@ -112,7 +186,8 @@ export default function CreateRoute() {
     endAcRef.current.addListener('place_changed', () => {
       const place = endAcRef.current.getPlace();
       if (!place.geometry) return;
-      setEndPlace(place); setEndVal(place.formatted_address || place.name);
+      setEndPlace(place);
+      setEndVal(place.formatted_address || place.name);
       setCalculatedRoute(null); setSavedMsg('');
     });
   }, [mapsLoaded]);
@@ -123,18 +198,10 @@ export default function CreateRoute() {
     stopMarkersRef.current.forEach(m => m.setMap(null));
     stopMarkersRef.current = [];
     if (startMarker.current) startMarker.current.setMap(null);
-    if (endMarker.current) endMarker.current.setMap(null);
+    if (endMarker.current)   endMarker.current.setMap(null);
 
-    startMarker.current = new maps.Marker({
-      position: startPlace.geometry.location, map: mapInstance.current,
-      icon: { path: maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#3ddc84', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2.5 },
-      label: { text: 'A', color: '#0a0f0d', fontSize: '11px', fontWeight: 'bold' },
-    });
-    endMarker.current = new maps.Marker({
-      position: endPlace.geometry.location, map: mapInstance.current,
-      icon: { path: maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#111', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2.5 },
-      label: { text: 'B', color: '#ffffff', fontSize: '11px', fontWeight: 'bold' },
-    });
+    startMarker.current = makeDraggableMarker(maps, startPlace.geometry.location, true);
+    endMarker.current   = makeDraggableMarker(maps, endPlace.geometry.location, false);
 
     const svc = new maps.DirectionsService();
     svc.route(
@@ -156,20 +223,38 @@ export default function CreateRoute() {
       mapInstance.current?.setZoom(13);
       if (startMarker.current) startMarker.current.setMap(null);
       const maps = window.google.maps;
-      startMarker.current = new maps.Marker({
-        position: startPlace.geometry.location, map: mapInstance.current,
-        icon: { path: maps.SymbolPath.CIRCLE, scale: 10, fillColor: '#3ddc84', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2.5 },
-        label: { text: 'A', color: '#0a0f0d', fontSize: '11px', fontWeight: 'bold' },
-      });
+      startMarker.current = makeDraggableMarker(maps, startPlace.geometry.location, true);
     }
     if (startPlace && endPlace) drawBaseRoute();
   }, [startPlace, endPlace, drawBaseRoute]);
+
+  // ── Use my location as start ──────────────────────
+  async function useMyLocation() {
+    if (!navigator.geolocation) return;
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async pos => {
+        const { latitude: lat, longitude: lng } = pos.coords;
+        const maps  = window.google.maps;
+        const place = await reverseGeocode(maps, lat, lng);
+        setStartPlace(place);
+        setStartVal(place.formatted_address);
+        if (startInputRef.current) startInputRef.current.value = place.formatted_address;
+        mapInstance.current?.panTo({ lat, lng });
+        mapInstance.current?.setZoom(13);
+        setCalculatedRoute(null); setSavedMsg('');
+        setGpsLoading(false);
+      },
+      () => setGpsLoading(false),
+      { timeout: 8000 }
+    );
+  }
 
   function plotStopMarkers(stops) {
     stopMarkersRef.current.forEach(m => m.setMap(null));
     stopMarkersRef.current = [];
     const maps = window.google.maps;
-    stops.forEach((stop, i) => {
+    stops.forEach(stop => {
       const marker = new maps.Marker({
         position: { lat: stop.lat, lng: stop.lng },
         map: mapInstance.current,
@@ -193,16 +278,15 @@ export default function CreateRoute() {
     try {
       const route = await calculateRoute({
         startPlace, endPlace,
-        car: selectedCar,
-        maps: window.google.maps,
-        mapInstance: mapInstance.current,
+        car:              selectedCar,
+        maps:             window.google.maps,
+        mapInstance:      mapInstance.current,
         directionsResult: directionsResultRef.current,
-        userEmail: currentUser?.email,
+        userEmail:        currentUser?.email,
       });
       setCalculatedRoute(route);
       plotStopMarkers(route.stops);
       setSavedMsg('Route saved to My Routes ✓');
-      setTimeout(() => navigate(`/route/${route.id}`), 1500); // show saved msg then navigate
     } catch (e) {
       console.error('Route calculation error:', e);
     } finally {
@@ -213,10 +297,11 @@ export default function CreateRoute() {
   function startTracking() {
     if (!navigator.geolocation) return;
     setTrackingGPS(true);
-    const maps = window.google.maps;
     watchIdRef.current = navigator.geolocation.watchPosition(
       pos => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        if (!mapInstance.current) return;
+        const loc  = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        const maps = window.google.maps;
         if (userMarkerRef.current) {
           userMarkerRef.current.setPosition(loc);
         } else {
@@ -246,10 +331,10 @@ export default function CreateRoute() {
     setRouteInfo(null); setCalculatedRoute(null); setCarWarning(false); setSavedMsg('');
     stopMarkersRef.current.forEach(m => m.setMap(null)); stopMarkersRef.current = [];
     if (startMarker.current) startMarker.current.setMap(null);
-    if (endMarker.current) endMarker.current.setMap(null);
+    if (endMarker.current)   endMarker.current.setMap(null);
     if (directionsRenderer.current) directionsRenderer.current.setDirections({ routes: [] });
     if (startInputRef.current) startInputRef.current.value = '';
-    if (endInputRef.current) endInputRef.current.value = '';
+    if (endInputRef.current)   endInputRef.current.value   = '';
     directionsResultRef.current = null;
     mapInstance.current?.setCenter({ lat: 37.0, lng: 35.3 });
     mapInstance.current?.setZoom(6);
@@ -280,24 +365,35 @@ export default function CreateRoute() {
             <div className="cr-section-label">ROUTE</div>
             <div className="cr-input-group">
               <div className="cr-input-row">
-                <div className="cr-input-dot cr-dot-green" />
+                <div className="cr-input-dot cr-dot-green"/>
                 <div className="cr-input-wrap">
                   <label className="cr-input-label">Starting point</label>
                   <input ref={startInputRef} className="cr-input" type="text"
                     placeholder="Search starting location..." value={startVal}
-                    onChange={e => setStartVal(e.target.value)} />
+                    onChange={e => setStartVal(e.target.value)}/>
                 </div>
+                <button
+                  className={`cr-my-loc-btn ${gpsLoading ? 'loading' : ''}`}
+                  onClick={useMyLocation}
+                  title="Use my current location"
+                  disabled={gpsLoading}
+                >
+                  {gpsLoading ? '⏳' : '◎'}
+                </button>
               </div>
-              <div className="cr-connector-line" />
+              <div className="cr-connector-line"/>
               <div className="cr-input-row">
-                <div className="cr-input-dot cr-dot-dark" />
+                <div className="cr-input-dot cr-dot-dark"/>
                 <div className="cr-input-wrap">
                   <label className="cr-input-label">Destination</label>
                   <input ref={endInputRef} className="cr-input" type="text"
                     placeholder="Search destination..." value={endVal}
-                    onChange={e => setEndVal(e.target.value)} />
+                    onChange={e => setEndVal(e.target.value)}/>
                 </div>
               </div>
+            </div>
+            <div className="cr-input-hints">
+              <span>💡 Drag the <strong>A</strong> or <strong>B</strong> markers on the map to adjust</span>
             </div>
             {(startVal || endVal) && <button className="cr-clear" onClick={clearRoute}>✕ Clear route</button>}
           </div>
@@ -308,7 +404,7 @@ export default function CreateRoute() {
                 <span className="cr-route-info-icon">↔</span>
                 <div><span className="cr-route-info-val">{routeInfo.distance}</span><span className="cr-route-info-sub">Total distance</span></div>
               </div>
-              <div className="cr-route-info-divider" />
+              <div className="cr-route-info-divider"/>
               <div className="cr-route-info-item">
                 <span className="cr-route-info-icon">⏱</span>
                 <div><span className="cr-route-info-val">{routeInfo.duration}</span><span className="cr-route-info-sub">Est. drive time</span></div>
@@ -322,7 +418,7 @@ export default function CreateRoute() {
             {userCars.length === 0 ? (
               <div className="cr-no-car">
                 <span className="cr-no-car-icon">◻</span>
-                <p className="cr-no-car-text">No vehicle added yet.<br />Add your EV for accurate range.</p>
+                <p className="cr-no-car-text">No vehicle added yet.<br/>Add your EV for accurate range.</p>
                 <button className="cr-add-car-btn" onClick={() => navigate('/add-vehicle')}>+ Add a Vehicle</button>
               </div>
             ) : (
@@ -333,12 +429,12 @@ export default function CreateRoute() {
                     onClick={() => { setSelectedCar(car); setCarWarning(false); }}>
                     <div className="cr-car-icon">
                       <svg viewBox="0 0 40 24" width="40" height="24">
-                        <rect x="0" y="8" width="40" height="12" rx="3" fill={selectedCar?.id === car.id ? '#3ddc84' : '#1a1a2e'} />
-                        <path d="M6 8 Q9 2 13 2 L27 2 Q33 2 35 8Z" fill={selectedCar?.id === car.id ? '#2ab870' : '#141428'} />
-                        <path d="M8 7.5 Q10.5 3 13 3 L26 3 Q31 3 33 7.5Z" fill="#4a9fd4" opacity="0.8" />
-                        <circle cx="9" cy="20" r="4" fill="#111" /><circle cx="9" cy="20" r="2" fill="#444" />
-                        <circle cx="31" cy="20" r="4" fill="#111" /><circle cx="31" cy="20" r="2" fill="#444" />
-                        <circle cx="1" cy="13" r="1.5" fill={selectedCar?.id === car.id ? '#fff' : '#3ddc84'} />
+                        <rect x="0" y="8" width="40" height="12" rx="3" fill={selectedCar?.id === car.id ? '#3ddc84' : '#1a1a2e'}/>
+                        <path d="M6 8 Q9 2 13 2 L27 2 Q33 2 35 8Z" fill={selectedCar?.id === car.id ? '#2ab870' : '#141428'}/>
+                        <path d="M8 7.5 Q10.5 3 13 3 L26 3 Q31 3 33 7.5Z" fill="#4a9fd4" opacity="0.8"/>
+                        <circle cx="9"  cy="20" r="4" fill="#111"/><circle cx="9"  cy="20" r="2" fill="#444"/>
+                        <circle cx="31" cy="20" r="4" fill="#111"/><circle cx="31" cy="20" r="2" fill="#444"/>
+                        <circle cx="1"  cy="13" r="1.5" fill={selectedCar?.id === car.id ? '#fff' : '#3ddc84'}/>
                       </svg>
                     </div>
                     <div className="cr-car-info">
@@ -352,7 +448,7 @@ export default function CreateRoute() {
             )}
             {selectedCar && (
               <div className="cr-range-hint">
-                <span className="cr-range-dot" />
+                <span className="cr-range-dot"/>
                 Stop every ~{Math.round((selectedCar.battery / selectedCar.consumption) * 100 * 0.8)} km
                 (80% of {Math.round((selectedCar.battery / selectedCar.consumption) * 100)} km max range)
               </div>
@@ -398,10 +494,10 @@ export default function CreateRoute() {
 
         <div className="cr-map-wrap">
           {!mapsLoaded && !mapsError && (
-            <div className="cr-map-loading"><span className="cr-loading-dot" /><span>Loading map...</span></div>
+            <div className="cr-map-loading"><span className="cr-loading-dot"/><span>Loading map...</span></div>
           )}
           {mapsError && <div className="cr-map-loading cr-map-error"><span>⚠ {mapsError}</span></div>}
-          <div ref={mapRef} className="cr-map" />
+          <div ref={mapRef} className="cr-map"/>
         </div>
       </div>
     </div>

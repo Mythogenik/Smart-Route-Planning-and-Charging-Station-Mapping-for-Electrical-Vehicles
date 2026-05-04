@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { apiLogin, apiRegister, apiLogout, getToken, removeToken } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -7,36 +8,60 @@ export function AuthProvider({ children }) {
     () => JSON.parse(localStorage.getItem('ev_current_user')) || null
   );
 
-  // Register a new user — stores in localStorage under ev_users
-  function signup({ firstName, lastName, email, password, phone }) {
-    const users = JSON.parse(localStorage.getItem('ev_users') || '[]');
-    const exists = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-    if (exists) return { success: false, error: 'An account with this email already exists.' };
+  // Register — calls real API
+  async function signup({ firstName, lastName, email, password, phone }) {
+    try {
+      // backend uses "username" — we'll use email prefix as username
+      const username = email.split('@')[0];
+      await apiRegister({
+        username,
+        firstName,
+        lastName,
+        phoneNumber: phone,
+        email,
+        password,
+      });
 
-    const newUser = { firstName, lastName, email, password, phone };
-    users.push(newUser);
-    localStorage.setItem('ev_users', JSON.stringify(users));
-    const session = { firstName, lastName, email, phone };
-    localStorage.setItem('ev_current_user', JSON.stringify(session));
-    setCurrentUser(session);
-    return { success: true };
+      // after register, auto login to get token
+      const loginData = await apiLogin({ email, password });
+
+      const session = {
+        firstName:  loginData.firstName,
+        lastName:   loginData.lastName,
+        email:      loginData.email,
+        phone:      loginData.phoneNumber,
+        username:   loginData.username,
+      };
+      localStorage.setItem('ev_current_user', JSON.stringify(session));
+      setCurrentUser(session);
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message || 'Registration failed.' };
+    }
   }
 
-  // Login — checks stored users
-  function login({ email, password }) {
-    const users = JSON.parse(localStorage.getItem('ev_users') || '[]');
-    const user = users.find(
-      u => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (!user) return { success: false, error: 'Invalid email or password.' };
+  // Login — calls real API
+  async function login({ email, password }) {
+    try {
+      const data = await apiLogin({ email, password });
 
-    const session = { firstName: user.firstName, lastName: user.lastName, email: user.email, phone: user.phone };
-    localStorage.setItem('ev_current_user', JSON.stringify(session));
-    setCurrentUser(session);
-    return { success: true };
+      const session = {
+        firstName: data.firstName,
+        lastName:  data.lastName,
+        email:     data.email,
+        phone:     data.phoneNumber,
+        username:  data.username,
+      };
+      localStorage.setItem('ev_current_user', JSON.stringify(session));
+      setCurrentUser(session);
+      return { success: true };
+    } catch (e) {
+      return { success: false, error: e.message || 'Invalid email or password.' };
+    }
   }
 
   function logout() {
+    apiLogout();
     localStorage.removeItem('ev_current_user');
     setCurrentUser(null);
   }

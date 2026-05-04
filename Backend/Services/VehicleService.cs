@@ -32,7 +32,12 @@ namespace EvRoutePlanner.Api.Services
                 BatteryCapacity = dto.BatteryCapacity,
                 CurrentSoc = dto.CurrentSoc,
                 UserId = userId,
-                AverageConsumption = consumption ?? 18.0
+                AverageConsumption = consumption ?? 18.0,
+                Range = dto.Range,
+                TopSpeed = dto.TopSpeed,
+                Color = dto.Color,
+                Year = dto.Year,
+                Nickname = dto.Nickname
             };
 
             await _context.Vehicles.AddAsync(vehicle);
@@ -76,6 +81,11 @@ namespace EvRoutePlanner.Api.Services
             vehicle.BatteryCapacity = dto.BatteryCapacity;
             vehicle.CurrentSoc = dto.CurrentSoc;
             vehicle.AverageConsumption = dto.AverageConsumption;
+            vehicle.Range = dto.Range;
+            vehicle.TopSpeed = dto.TopSpeed;
+            vehicle.Color = dto.Color;
+            vehicle.Year = dto.Year;
+            vehicle.Nickname = dto.Nickname;
 
             _context.Vehicles.Update(vehicle);
             await _context.SaveChangesAsync();
@@ -106,7 +116,12 @@ namespace EvRoutePlanner.Api.Services
                 BatteryCapacity = vehicle.BatteryCapacity,
                 CurrentSoc = vehicle.CurrentSoc,
                 AverageConsumption = vehicle.AverageConsumption,
-                UserId = vehicle.UserId
+                UserId = vehicle.UserId,
+                Range = vehicle.Range,
+                TopSpeed = vehicle.TopSpeed,
+                Color = vehicle.Color,
+                Year = vehicle.Year,
+                Nickname = vehicle.Nickname
             };
         }
     }

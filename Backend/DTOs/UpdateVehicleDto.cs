@@ -7,5 +7,10 @@ namespace EvRoutePlanner.Api.DTOs
         public double BatteryCapacity { get; set; }
         public double CurrentSoc { get; set; }
         public double AverageConsumption { get; set; }
+        public double Range { get; set; }
+        public double TopSpeed { get; set; }
+        public string Color { get; set; } = string.Empty;
+        public int Year { get; set; }
+        public string Nickname { get; set; } = string.Empty;
     }
 }

@@ -21,11 +21,10 @@ export default function Login() {
     e.preventDefault();
     if (!form.email || !form.password) { setError('Please fill in all fields.'); return; }
     setLoading(true);
-    setTimeout(() => {
-      const result = login({ email: form.email, password: form.password });
+    login({ email: form.email, password: form.password }).then(result => {
       if (result.success) { navigate('/dashboard'); }
       else { setError(result.error); setLoading(false); }
-    }, 600);
+    });
   }
 
   return (
@@ -50,51 +49,51 @@ export default function Login() {
 
           {/* static map grid — same style as landing hero, no animations */}
           <svg className="auth-map-svg" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice">
-            <rect width="700" height="900" fill="#111"/>
+            <rect width="700" height="900" fill="#111" />
             {/* dim grid */}
             <g stroke="#1e1e1e" strokeWidth="1" fill="none">
-              <path d="M0 80  Q175 60  350 82  T700 74"/>
-              <path d="M0 180 Q200 158 400 183 T700 172"/>
-              <path d="M0 280 Q175 258 350 282 T700 272"/>
-              <path d="M0 380 Q200 358 400 383 T700 372"/>
-              <path d="M0 480 Q175 458 350 482 T700 472"/>
-              <path d="M0 580 Q200 558 400 583 T700 572"/>
-              <path d="M0 680 Q175 658 350 682 T700 672"/>
-              <path d="M0 780 Q200 758 400 783 T700 772"/>
-              <path d="M0 880 Q175 858 350 882 T700 872"/>
-              <path d="M60  0 Q74  150 58  900"/>
-              <path d="M160 0 Q176 150 158 900"/>
-              <path d="M270 0 Q286 150 268 900"/>
-              <path d="M380 0 Q396 150 378 900"/>
-              <path d="M490 0 Q506 150 488 900"/>
-              <path d="M600 0 Q616 150 598 900"/>
+              <path d="M0 80  Q175 60  350 82  T700 74" />
+              <path d="M0 180 Q200 158 400 183 T700 172" />
+              <path d="M0 280 Q175 258 350 282 T700 272" />
+              <path d="M0 380 Q200 358 400 383 T700 372" />
+              <path d="M0 480 Q175 458 350 482 T700 472" />
+              <path d="M0 580 Q200 558 400 583 T700 572" />
+              <path d="M0 680 Q175 658 350 682 T700 672" />
+              <path d="M0 780 Q200 758 400 783 T700 772" />
+              <path d="M0 880 Q175 858 350 882 T700 872" />
+              <path d="M60  0 Q74  150 58  900" />
+              <path d="M160 0 Q176 150 158 900" />
+              <path d="M270 0 Q286 150 268 900" />
+              <path d="M380 0 Q396 150 378 900" />
+              <path d="M490 0 Q506 150 488 900" />
+              <path d="M600 0 Q616 150 598 900" />
             </g>
             {/* brighter accent roads */}
             <g stroke="#252525" strokeWidth="2" fill="none">
-              <path d="M0 230 Q350 208 700 233"/>
-              <path d="M0 530 Q350 508 700 533"/>
-              <path d="M215 0 Q231 200 214 900"/>
-              <path d="M485 0 Q501 200 484 900"/>
+              <path d="M0 230 Q350 208 700 233" />
+              <path d="M0 530 Q350 508 700 533" />
+              <path d="M215 0 Q231 200 214 900" />
+              <path d="M485 0 Q501 200 484 900" />
             </g>
             {/* static charge pin dots */}
             <g fill="#3ddc84" opacity="0.6">
-              <circle cx="215" cy="230" r="5"/>
-              <circle cx="485" cy="380" r="4"/>
-              <circle cx="160" cy="530" r="6"/>
-              <circle cx="380" cy="680" r="4"/>
-              <circle cx="600" cy="230" r="5"/>
-              <circle cx="270" cy="780" r="4"/>
+              <circle cx="215" cy="230" r="5" />
+              <circle cx="485" cy="380" r="4" />
+              <circle cx="160" cy="530" r="6" />
+              <circle cx="380" cy="680" r="4" />
+              <circle cx="600" cy="230" r="5" />
+              <circle cx="270" cy="780" r="4" />
             </g>
             {/* static route line */}
             <path d="M0 760 Q150 730 270 748 Q390 764 485 738 Q570 718 700 730"
               stroke="#3ddc84" strokeWidth="2" fill="none"
-              strokeDasharray="12 6" strokeLinecap="round" opacity="0.4"/>
+              strokeDasharray="12 6" strokeLinecap="round" opacity="0.4" />
           </svg>
 
           <div className="auth-map-content">
-            <h2 className="auth-map-title">WELCOME<br/>BACK.</h2>
+            <h2 className="auth-map-title">WELCOME<br />BACK.</h2>
             <p className="auth-map-sub">
-              Your next smart route is waiting.<br/>
+              Your next smart route is waiting.<br />
               Pick up where you left off.
             </p>
             <div className="auth-map-stats">

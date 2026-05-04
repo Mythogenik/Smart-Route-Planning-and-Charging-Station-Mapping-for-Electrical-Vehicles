@@ -319,6 +319,17 @@ export async function calculateRoute({
     stops,
   };
 
+  // save to backend first
+  try {
+    const { apiSaveRoute } = await import('./api.js');
+    const savedRoute = await apiSaveRoute(route, car.id);
+    console.log('Backend save result:', savedRoute);
+    if (savedRoute?.id) route.id = savedRoute.id;
+  } catch (e) {
+    console.warn('Backend save failed, using localStorage only:', e);
+  }
+
+  // always save to localStorage as fallback/cache
   const all = JSON.parse(localStorage.getItem('ev_routes') || '[]');
   all.push(route);
   localStorage.setItem('ev_routes', JSON.stringify(all));

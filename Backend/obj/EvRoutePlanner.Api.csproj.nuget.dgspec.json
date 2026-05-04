@@ -1,27 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Özcan\\Documents\\GitHub\\Smart-Route-Planning-and-Charging-Station-Mapping-for-Electrical-Vehicles\\Backend\\EvRoutePlanner.Api.csproj": {}
+    "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Özcan\\Documents\\GitHub\\Smart-Route-Planning-and-Charging-Station-Mapping-for-Electrical-Vehicles\\Backend\\EvRoutePlanner.Api.csproj": {
+    "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Özcan\\Documents\\GitHub\\Smart-Route-Planning-and-Charging-Station-Mapping-for-Electrical-Vehicles\\Backend\\EvRoutePlanner.Api.csproj",
+        "projectUniqueName": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj",
         "projectName": "EvRoutePlanner.Api",
-        "projectPath": "C:\\Users\\Özcan\\Documents\\GitHub\\Smart-Route-Planning-and-Charging-Station-Mapping-for-Electrical-Vehicles\\Backend\\EvRoutePlanner.Api.csproj",
-        "packagesPath": "C:\\Users\\Özcan\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Özcan\\Documents\\GitHub\\Smart-Route-Planning-and-Charging-Station-Mapping-for-Electrical-Vehicles\\Backend\\obj\\",
+        "projectPath": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj",
+        "packagesPath": "C:\\Users\\Gokha\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Özcan\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\Gokha\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -104,7 +102,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.312/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.313/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

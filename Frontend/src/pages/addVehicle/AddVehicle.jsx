@@ -5,7 +5,6 @@ import './AddVehicle.css';
 
 const EV_API_KEY = import.meta.env.VITE_EV_API_KEY;
 
-// Brand colors
 const MAKE_COLORS = {
   tesla: '#cc0000', bmw: '#1c69ad', mercedes: '#222222', volkswagen: '#151f6d',
   audi: '#bb0a21', hyundai: '#002c5f', kia: '#05141f', porsche: '#d5001c',
@@ -28,7 +27,6 @@ function shadeColor(hex, pct) {
   } catch { return hex; }
 }
 
-// Hardcoded model list — used for the dropdown
 const EV_MODELS = {
   Tesla:      ['Model 3', 'Model Y', 'Model S', 'Model X', 'Cybertruck'],
   BMW:        ['i3', 'i4', 'i5', 'i7', 'iX', 'iX1', 'iX2', 'iX3'],
@@ -72,8 +70,6 @@ const EV_MODELS = {
 
 const MAKES = Object.keys(EV_MODELS).sort();
 
-// Fallback specs when API is missing fields
-// Source: WLTP official ratings
 const FALLBACK_SPECS = {
   'Tesla Model 3':           { topSpeed: 225, range: 491, battery: 60,  consumption: 14.0, year: 2024 },
   'Tesla Model Y':           { topSpeed: 217, range: 430, battery: 60,  consumption: 15.5, year: 2024 },
@@ -165,13 +161,14 @@ const FALLBACK_SPECS = {
   'Opel Corsa Electric':     { topSpeed: 150, range: 402, battery: 51,  consumption: 14.0, year: 2024 },
   'Opel Mokka Electric':     { topSpeed: 150, range: 338, battery: 54,  consumption: 17.5, year: 2024 },
   'Opel Astra Electric':     { topSpeed: 170, range: 418, battery: 54,  consumption: 14.5, year: 2024 },
+  'Xpeng P7':                { topSpeed: 200, range: 480, battery: 80,  consumption: 17.0, year: 2023 },
+  'Xpeng G9':                { topSpeed: 200, range: 520, battery: 98,  consumption: 20.0, year: 2023 },
+  'Xpeng G6':                { topSpeed: 200, range: 570, battery: 87,  consumption: 16.5, year: 2024 },
 };
 
 function getFallback(make, model) {
   const key = `${make} ${model}`;
-  // exact match first
   if (FALLBACK_SPECS[key]) return FALLBACK_SPECS[key];
-  // partial match — e.g. "Audi Q4 e-tron" matches "Audi Q4 e-tron 40"
   const partialKey = Object.keys(FALLBACK_SPECS).find(k =>
     k.toLowerCase().startsWith(key.toLowerCase()) ||
     key.toLowerCase().startsWith(k.toLowerCase())
@@ -179,7 +176,6 @@ function getFallback(make, model) {
   return partialKey ? FALLBACK_SPECS[partialKey] : null;
 }
 
-// Parse number from strings like "420 km", "60.0 kWh", "112 Wh/km"
 function parseNum(str) {
   if (!str) return null;
   const n = parseFloat(str.replace(/[^\d.]/g, ''));
@@ -198,12 +194,8 @@ function CarIllustration({ car }) {
       <path d="M72 78 Q93 38 115 36 L200 36 Q228 36 242 78Z" fill="#7ec8e3" opacity="0.75"/>
       <path d="M62 78 Q78 50 105 42 L118 42 Q93 52 80 78Z" fill="#7ec8e3" opacity="0.4"/>
       <path d="M245 78 Q238 55 215 42 L202 42 Q222 54 232 78Z" fill="#7ec8e3" opacity="0.4"/>
-      <circle cx="75"  cy="138" r="22" fill="#111"/>
-      <circle cx="75"  cy="138" r="13" fill="#333"/>
-      <circle cx="75"  cy="138" r="5"  fill="#555"/>
-      <circle cx="245" cy="138" r="22" fill="#111"/>
-      <circle cx="245" cy="138" r="13" fill="#333"/>
-      <circle cx="245" cy="138" r="5"  fill="#555"/>
+      <circle cx="75"  cy="138" r="22" fill="#111"/><circle cx="75"  cy="138" r="13" fill="#333"/><circle cx="75"  cy="138" r="5" fill="#555"/>
+      <circle cx="245" cy="138" r="22" fill="#111"/><circle cx="245" cy="138" r="13" fill="#333"/><circle cx="245" cy="138" r="5" fill="#555"/>
       <path d="M48 115 Q48 100 75 100 Q102 100 102 115" fill={dark}/>
       <path d="M218 115 Q218 100 245 100 Q272 100 272 115" fill={dark}/>
       <rect x="295" y="90" width="8" height="14" rx="4" fill="#fffde7" opacity="0.95"/>
@@ -221,7 +213,7 @@ export default function AddVehicle() {
   const dropdownRef     = useRef(null);
 
   const [selectedMake,   setSelectedMake]   = useState('');
-  const [modelQuery,     setModelQuery]      = useState('');
+  const [modelQuery,     setModelQuery]     = useState('');
   const [selectedCar,    setSelectedCar]    = useState(null);
   const [showDropdown,   setShowDropdown]   = useState(false);
   const [customNickname, setCustomNickname] = useState('');
@@ -231,13 +223,11 @@ export default function AddVehicle() {
     topSpeed: '', range: '', battery: '', consumption: '', year: '',
   });
 
-  // filtered models from hardcoded list
   const availableModels = selectedMake ? (EV_MODELS[selectedMake] || []) : [];
   const filteredModels  = availableModels.filter(m =>
     !modelQuery || m.toLowerCase().includes(modelQuery.toLowerCase())
   );
 
-  // close dropdown on outside click
   useEffect(() => {
     function handle(e) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target))
@@ -251,37 +241,31 @@ export default function AddVehicle() {
     setSpecsLoading(true);
     setApiError('');
     try {
-      const params = new URLSearchParams({
-        make:  make.toLowerCase(),
-        model: model,
-      });
-      const res  = await fetch(`https://api.api-ninjas.com/v1/electricvehicle?${params}`, {
+      const params = new URLSearchParams({ make: make.toLowerCase(), model });
+      const res    = await fetch(`https://api.api-ninjas.com/v1/electricvehicle?${params}`, {
         headers: { 'X-Api-Key': EV_API_KEY },
       });
       if (!res.ok) throw new Error(`API ${res.status}`);
-      const data = await res.json();
-
-      // get fallback data for this make+model
+      const data     = await res.json();
       const fallback = getFallback(make, model);
 
       let range, battery, consumption, topSpeed, year;
 
       if (Array.isArray(data) && data.length > 0) {
-        const ev  = data[0];
-        range       = parseNum(ev.electric_range)                             || fallback?.range;
-        battery     = parseNum(ev.battery_useable_capacity || ev.battery_capacity) || fallback?.battery;
-        consumption = ev.vehicle_consumption
-          ? parseFloat((parseNum(ev.vehicle_consumption) / 10).toFixed(1))
+        const ev    = data[0];
+        range       = fallback?.range || null;
+        battery     = parseNum(ev.battery_useable_capacity || ev.battery_capacity);
+        consumption = ev.rated_consumption
+          ? parseFloat((parseNum(ev.rated_consumption) / 10).toFixed(1))
           : fallback?.consumption;
-        topSpeed    = ev.top_speed ? parseNum(ev.top_speed) : fallback?.topSpeed;
+        topSpeed    = fallback?.topSpeed || null;
         year        = ev.year_start || fallback?.year;
       } else {
-        // API returned nothing — use full fallback
-        range       = fallback?.range;
-        battery     = fallback?.battery;
-        consumption = fallback?.consumption;
-        topSpeed    = fallback?.topSpeed;
-        year        = fallback?.year;
+        range       = fallback?.range       || null;
+        battery     = fallback?.battery     || null;
+        consumption = fallback?.consumption || null;
+        topSpeed    = fallback?.topSpeed    || null;
+        year        = fallback?.year        || null;
         if (!fallback) setApiError('No data found — please fill specs manually.');
       }
 
@@ -293,7 +277,6 @@ export default function AddVehicle() {
         year:        year        != null ? String(year)        : '',
       });
     } catch (e) {
-      // API failed entirely — use fallback
       const fallback = getFallback(make, model);
       if (fallback) {
         setSpecs({
@@ -306,56 +289,56 @@ export default function AddVehicle() {
       } else {
         setApiError('Could not fetch specs — please fill manually.');
       }
-      console.error(e);
     } finally {
       setSpecsLoading(false);
     }
   }
 
   function selectModel(model) {
-    const car = {
-      make:  selectedMake,
-      model: model,
-      color: getColor(selectedMake),
-    };
+    const car = { make: selectedMake, model, color: getColor(selectedMake) };
     setSelectedCar(car);
     setModelQuery(model);
     setShowDropdown(false);
     fetchSpecs(selectedMake, model);
   }
 
-  function handleSave() {
+  async function handleSave() {
     if (!selectedCar) return;
-    const cars = JSON.parse(localStorage.getItem('ev_cars') || '[]');
-    const newCar = {
-      id:          Date.now(),
-      ownerEmail:  currentUser?.email,
-      make:        selectedCar.make,
-      model:       selectedCar.model,
-      year:        Number(specs.year)        || new Date().getFullYear(),
-      color:       selectedCar.color,
-      nickname:    customNickname || `${selectedCar.make} ${selectedCar.model}`,
-      topSpeed:    Number(specs.topSpeed)    || 0,
-      range:       Number(specs.range)       || 0,
-      battery:     Number(specs.battery)     || 0,
-      consumption: Number(specs.consumption) || 0,
-    };
-    cars.push(newCar);
-    localStorage.setItem('ev_cars', JSON.stringify(cars));
-    navigate('/dashboard');
+    try {
+      const { apiCreateVehicle, mapVehicleFromApi } = await import('../../utils/api');
+      const newVehicle = await apiCreateVehicle({
+        make:        selectedCar.make,
+        model:       selectedCar.model,
+        year:        Number(specs.year)        || 0,
+        color:       selectedCar.color,
+        nickname:    customNickname || `${selectedCar.make} ${selectedCar.model}`,
+        topSpeed:    Number(specs.topSpeed)    || 0,
+        range:       Number(specs.range)       || 0,
+        battery:     Number(specs.battery)     || 0,
+        consumption: Number(specs.consumption) || 0,
+      });
+      const mapped = mapVehicleFromApi(newVehicle);
+      mapped.ownerEmail = JSON.parse(localStorage.getItem('ev_current_user'))?.email;
+      const cars = JSON.parse(localStorage.getItem('ev_cars') || '[]');
+      cars.push(mapped);
+      localStorage.setItem('ev_cars', JSON.stringify(cars));
+      navigate('/dashboard');
+    } catch (e) {
+      console.error('Failed to save vehicle:', e);
+      alert('Failed to save vehicle: ' + e.message);
+    }
   }
 
   const specFields = [
-    { key: 'year',        label: 'Model Year',      unit: '',          icon: '📅', desc: 'First year available'      },
-    { key: 'topSpeed',    label: 'Top Speed',        unit: 'km/h',      icon: '⚡', desc: 'Maximum speed'             },
-    { key: 'battery',     label: 'Battery Capacity', unit: 'kWh',       icon: '🔋', desc: 'Usable battery capacity'   },
-    { key: 'range',       label: 'Range',            unit: 'km',        icon: '↔',  desc: 'Rated range (WLTP)'        },
-    { key: 'consumption', label: 'Consumption',      unit: 'kWh/100km', icon: '📊', desc: 'Energy per 100 km'         },
+    { key: 'year',        label: 'Model Year',      unit: '',          icon: '📅', desc: 'First year available'    },
+    { key: 'topSpeed',    label: 'Top Speed',        unit: 'km/h',      icon: '⚡', desc: 'Maximum speed'           },
+    { key: 'battery',     label: 'Battery Capacity', unit: 'kWh',       icon: '🔋', desc: 'Usable battery capacity' },
+    { key: 'range',       label: 'Range',            unit: 'km',        icon: '↔',  desc: 'Rated range (WLTP)'      },
+    { key: 'consumption', label: 'Consumption',      unit: 'kWh/100km', icon: '📊', desc: 'Energy per 100 km'       },
   ];
 
   return (
     <div className="av-page">
-
       <div className="av-topbar">
         <button className="av-back" onClick={() => navigate('/dashboard')}>← Back to Dashboard</button>
         <span className="av-topbar-title">Add Vehicle</span>
@@ -365,92 +348,70 @@ export default function AddVehicle() {
       <div className="av-body">
         <div className="av-panel">
 
-          {/* MAKE */}
           <div className="av-section">
             <div className="av-section-label">MANUFACTURER</div>
             <div className="av-make-grid">
               {MAKES.map(make => (
-                <button
-                  key={make}
+                <button key={make}
                   className={`av-make-btn ${selectedMake === make ? 'active' : ''}`}
                   onClick={() => {
                     setSelectedMake(prev => prev === make ? '' : make);
-                    setModelQuery('');
-                    setSelectedCar(null);
+                    setModelQuery(''); setSelectedCar(null);
                     setSpecs({ topSpeed: '', range: '', battery: '', consumption: '', year: '' });
                     setApiError('');
-                  }}
-                >
+                  }}>
                   {make}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* MODEL */}
           <div className="av-section">
             <div className="av-section-label">MODEL</div>
             <div className="av-dropdown-wrap" ref={dropdownRef}>
               <div className={`av-search-box ${showDropdown ? 'open' : ''}`}>
                 <span className="av-search-icon">🔍</span>
-                <input
-                  className="av-search-input"
-                  type="text"
+                <input className="av-search-input" type="text"
                   placeholder={selectedMake ? `Search ${selectedMake} models...` : 'Select a manufacturer first'}
-                  value={modelQuery}
-                  disabled={!selectedMake}
-                  onChange={e => {
-                    setModelQuery(e.target.value);
-                    setShowDropdown(true);
-                    setSelectedCar(null);
-                  }}
+                  value={modelQuery} disabled={!selectedMake}
+                  onChange={e => { setModelQuery(e.target.value); setShowDropdown(true); setSelectedCar(null); }}
                   onFocus={() => selectedMake && setShowDropdown(true)}
                 />
                 {modelQuery && (
                   <button className="av-search-clear" onClick={() => {
-                    setModelQuery('');
-                    setSelectedCar(null);
+                    setModelQuery(''); setSelectedCar(null);
                     setSpecs({ topSpeed: '', range: '', battery: '', consumption: '', year: '' });
                   }}>✕</button>
                 )}
               </div>
-
               {showDropdown && selectedMake && (
                 <div className="av-dropdown">
                   {filteredModels.length === 0 ? (
                     <div className="av-dropdown-empty">No models found</div>
-                  ) : (
-                    filteredModels.map((model, i) => (
-                      <button key={i} className="av-dropdown-item" onClick={() => selectModel(model)}>
-                        <div className="av-dropdown-color" style={{ background: getColor(selectedMake) }}/>
-                        <div className="av-dropdown-info">
-                          <span className="av-dropdown-name">{selectedMake} {model}</span>
-                          <span className="av-dropdown-sub">Click to load live specs from API</span>
-                        </div>
-                        <span className="av-dropdown-speed">→</span>
-                      </button>
-                    ))
-                  )}
+                  ) : filteredModels.map((model, i) => (
+                    <button key={i} className="av-dropdown-item" onClick={() => selectModel(model)}>
+                      <div className="av-dropdown-color" style={{ background: getColor(selectedMake) }}/>
+                      <div className="av-dropdown-info">
+                        <span className="av-dropdown-name">{selectedMake} {model}</span>
+                        <span className="av-dropdown-sub">Click to load live specs from API</span>
+                      </div>
+                      <span className="av-dropdown-speed">→</span>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          {/* NICKNAME */}
           {selectedCar && (
             <div className="av-section">
               <div className="av-section-label">NICKNAME (optional)</div>
-              <input
-                className="av-nickname-input"
-                type="text"
+              <input className="av-nickname-input" type="text"
                 placeholder={`e.g. "My Tesla" or "Work Car"`}
-                value={customNickname}
-                onChange={e => setCustomNickname(e.target.value)}
-              />
+                value={customNickname} onChange={e => setCustomNickname(e.target.value)}/>
             </div>
           )}
 
-          {/* SPECS */}
           {selectedCar && (
             <div className="av-section">
               <div className="av-section-label">
@@ -466,14 +427,10 @@ export default function AddVehicle() {
                       <span className="av-spec-label">{f.label}</span>
                     </div>
                     <div className="av-spec-input-wrap">
-                      <input
-                        className="av-spec-input"
-                        type="number"
-                        value={specs[f.key]}
-                        placeholder={specsLoading ? '...' : '—'}
+                      <input className="av-spec-input" type="number"
+                        value={specs[f.key]} placeholder={specsLoading ? '...' : '—'}
                         disabled={specsLoading}
-                        onChange={e => setSpecs(prev => ({ ...prev, [f.key]: e.target.value }))}
-                      />
+                        onChange={e => setSpecs(prev => ({ ...prev, [f.key]: e.target.value }))}/>
                       <span className="av-spec-unit">{f.unit}</span>
                     </div>
                     <span className="av-spec-desc">{f.desc}</span>
@@ -486,14 +443,12 @@ export default function AddVehicle() {
           <button
             className={`av-save ${selectedCar && !specsLoading ? 'active' : ''}`}
             disabled={!selectedCar || specsLoading}
-            onClick={handleSave}
-          >
+            onClick={handleSave}>
             {specsLoading ? 'Loading specs...' : '+ ADD TO MY GARAGE'}
           </button>
 
         </div>
 
-        {/* PREVIEW */}
         <div className="av-preview">
           {selectedCar ? (
             <>
@@ -503,12 +458,10 @@ export default function AddVehicle() {
                 <h3 className="av-preview-model">{selectedCar.model}</h3>
                 {specs.year && <span className="av-preview-year">{specs.year}</span>}
               </div>
-
               <div className="av-car-stage">
                 <div className="av-car-bg"/>
                 <CarIllustration car={selectedCar}/>
               </div>
-
               <div className="av-preview-stats">
                 <div className="av-preview-stat">
                   <span className="av-preview-stat-val">
@@ -534,7 +487,6 @@ export default function AddVehicle() {
                   <span className="av-preview-stat-label">Top Speed</span>
                 </div>
               </div>
-
               <div className="av-preview-badge">
                 <span className="av-badge-dot"/>
                 <span>Specs fetched live from EV database · editable above</span>

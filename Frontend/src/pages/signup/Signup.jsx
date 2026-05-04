@@ -16,7 +16,7 @@ export default function Signup() {
   function validate() {
     const e = {};
     if (!form.firstName.trim()) e.firstName = 'First name is required.';
-    if (!form.lastName.trim())  e.lastName  = 'Last name is required.';
+    if (!form.lastName.trim()) e.lastName = 'Last name is required.';
     if (!form.email) e.email = 'Email is required.';
     else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Enter a valid email.';
     if (!form.password) e.password = 'Password is required.';
@@ -38,16 +38,15 @@ export default function Signup() {
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setLoading(true);
-    setTimeout(() => {
-      const result = signup({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, phone: form.phone });
-      if (result.success) { navigate('/'); }
+    signup({ firstName: form.firstName, lastName: form.lastName, email: form.email, password: form.password, phone: form.phone }).then(result => {
+      if (result.success) { navigate('/dashboard'); }
       else { setErrors({ email: result.error }); setLoading(false); }
-    }, 600);
+    });
   }
 
   const strength = !form.password ? 0
     : form.password.length < 6 ? 1
-    : form.password.length < 10 ? 2 : 3;
+      : form.password.length < 10 ? 2 : 3;
   const strengthLabel = ['', 'Weak', 'Good', 'Strong'];
   const strengthColor = ['', '#e53e3e', '#facc15', '#3ddc84'];
 
@@ -73,53 +72,53 @@ export default function Signup() {
 
           {/* static map grid */}
           <svg className="auth-map-svg" viewBox="0 0 700 900" preserveAspectRatio="xMidYMid slice">
-            <rect width="700" height="900" fill="#111"/>
+            <rect width="700" height="900" fill="#111" />
             <g stroke="#1e1e1e" strokeWidth="1" fill="none">
-              <path d="M0 80  Q175 60  350 82  T700 74"/>
-              <path d="M0 180 Q200 158 400 183 T700 172"/>
-              <path d="M0 280 Q175 258 350 282 T700 272"/>
-              <path d="M0 380 Q200 358 400 383 T700 372"/>
-              <path d="M0 480 Q175 458 350 482 T700 472"/>
-              <path d="M0 580 Q200 558 400 583 T700 572"/>
-              <path d="M0 680 Q175 658 350 682 T700 672"/>
-              <path d="M0 780 Q200 758 400 783 T700 772"/>
-              <path d="M60  0 Q74  150 58  900"/>
-              <path d="M160 0 Q176 150 158 900"/>
-              <path d="M270 0 Q286 150 268 900"/>
-              <path d="M380 0 Q396 150 378 900"/>
-              <path d="M490 0 Q506 150 488 900"/>
-              <path d="M600 0 Q616 150 598 900"/>
+              <path d="M0 80  Q175 60  350 82  T700 74" />
+              <path d="M0 180 Q200 158 400 183 T700 172" />
+              <path d="M0 280 Q175 258 350 282 T700 272" />
+              <path d="M0 380 Q200 358 400 383 T700 372" />
+              <path d="M0 480 Q175 458 350 482 T700 472" />
+              <path d="M0 580 Q200 558 400 583 T700 572" />
+              <path d="M0 680 Q175 658 350 682 T700 672" />
+              <path d="M0 780 Q200 758 400 783 T700 772" />
+              <path d="M60  0 Q74  150 58  900" />
+              <path d="M160 0 Q176 150 158 900" />
+              <path d="M270 0 Q286 150 268 900" />
+              <path d="M380 0 Q396 150 378 900" />
+              <path d="M490 0 Q506 150 488 900" />
+              <path d="M600 0 Q616 150 598 900" />
             </g>
             <g stroke="#252525" strokeWidth="2" fill="none">
-              <path d="M0 130 Q350 108 700 133"/>
-              <path d="M0 430 Q350 408 700 433"/>
-              <path d="M0 730 Q350 708 700 733"/>
-              <path d="M215 0 Q231 200 214 900"/>
-              <path d="M485 0 Q501 200 484 900"/>
+              <path d="M0 130 Q350 108 700 133" />
+              <path d="M0 430 Q350 408 700 433" />
+              <path d="M0 730 Q350 708 700 733" />
+              <path d="M215 0 Q231 200 214 900" />
+              <path d="M485 0 Q501 200 484 900" />
             </g>
             {/* static pins — different positions from login */}
             <g fill="#3ddc84" opacity="0.6">
-              <circle cx="160" cy="280" r="4"/>
-              <circle cx="380" cy="130" r="6"/>
-              <circle cx="485" cy="480" r="5"/>
-              <circle cx="600" cy="380" r="4"/>
-              <circle cx="270" cy="630" r="5"/>
-              <circle cx="160" cy="780" r="4"/>
-              <circle cx="490" cy="730" r="6"/>
+              <circle cx="160" cy="280" r="4" />
+              <circle cx="380" cy="130" r="6" />
+              <circle cx="485" cy="480" r="5" />
+              <circle cx="600" cy="380" r="4" />
+              <circle cx="270" cy="630" r="5" />
+              <circle cx="160" cy="780" r="4" />
+              <circle cx="490" cy="730" r="6" />
             </g>
             {/* two static route lines for variety */}
             <path d="M0 440 Q160 418 270 432 Q380 446 485 420 Q570 400 700 412"
               stroke="#3ddc84" strokeWidth="2" fill="none"
-              strokeDasharray="12 6" strokeLinecap="round" opacity="0.35"/>
+              strokeDasharray="12 6" strokeLinecap="round" opacity="0.35" />
             <path d="M0 640 Q215 618 380 634 Q490 648 700 628"
               stroke="#3ddc84" strokeWidth="1.5" fill="none"
-              strokeDasharray="10 8" strokeLinecap="round" opacity="0.25"/>
+              strokeDasharray="10 8" strokeLinecap="round" opacity="0.25" />
           </svg>
 
           <div className="auth-map-content">
-            <h2 className="auth-map-title">JOIN THE<br/>SMARTER<br/>GRID.</h2>
+            <h2 className="auth-map-title">JOIN THE<br />SMARTER<br />GRID.</h2>
             <p className="auth-map-sub">
-              Plan routes. Find charge.<br/>
+              Plan routes. Find charge.<br />
               Drive further with every trip.
             </p>
             <div className="auth-map-stats">
@@ -213,7 +212,7 @@ export default function Signup() {
                     <div className="strength-bar">
                       {[1, 2, 3].map(i => (
                         <div key={i} className="strength-seg"
-                          style={{ background: i <= strength ? strengthColor[strength] : '#e5e5e5' }}/>
+                          style={{ background: i <= strength ? strengthColor[strength] : '#e5e5e5' }} />
                       ))}
                     </div>
                     <span className="strength-label" style={{ color: strengthColor[strength] }}>

@@ -40,6 +40,7 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponseDto?> Login(UserLoginDto dto)
     {
+        
         var user = await _context.Users.FirstOrDefaultAsync(x => x.Email == dto.Email.ToLower());
 
         if (user == null || !VerifyPasswordHash(dto.Password, user.PasswordHash, user.PasswordSalt))

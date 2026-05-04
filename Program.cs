@@ -111,7 +111,9 @@ builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IEvModelService, EvModelService>();
 builder.Services.AddScoped<IChargingStationService, ChargingStationService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
-
+builder.Services.AddScoped<IRangeService, RangeService>();
+builder.Services.AddHttpClient<IFuelEconomyService, FuelEconomyService>();
+builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
 
 //builder.Services.AddScoped<ISeedingService, SeedingService>();
 

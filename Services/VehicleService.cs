@@ -9,21 +9,30 @@ namespace EvRoutePlanner.Api.Services
     public class VehicleService : IVehicleService
     {
         private readonly AppDbContext _context;
+        private readonly IFuelEconomyService _fuelEconomyService;
 
-        public VehicleService(AppDbContext context)
+        public VehicleService(AppDbContext context, IFuelEconomyService fuelEconomyService)
         {
             _context = context;
+            _fuelEconomyService = fuelEconomyService;
         }
 
         public async Task<VehicleResponseDto> CreateVehicle(int userId, CreateVehicleDto dto)
         {
+            var consumption = await _fuelEconomyService.GetAverageConsumptionAsync(
+                dto.Brand,
+                dto.Model,
+                dto.BatteryCapacity
+            );
+
             var vehicle = new Vehicle
             {
                 Brand = dto.Brand,
                 Model = dto.Model,
                 BatteryCapacity = dto.BatteryCapacity,
                 CurrentSoc = dto.CurrentSoc,
-                UserId = userId
+                UserId = userId,
+                AverageConsumption = consumption ?? 18.0
             };
 
             await _context.Vehicles.AddAsync(vehicle);
@@ -56,10 +65,17 @@ namespace EvRoutePlanner.Api.Services
 
             if (vehicle == null) return null;
 
+            if (vehicle.Brand != dto.Brand || vehicle.Model != dto.Model)
+            {
+                var newConsumption = await _fuelEconomyService.GetAverageConsumptionAsync(dto.Brand, dto.Model, dto.BatteryCapacity);
+                vehicle.AverageConsumption = newConsumption ?? 18.0;
+            }
+
             vehicle.Brand = dto.Brand;
             vehicle.Model = dto.Model;
             vehicle.BatteryCapacity = dto.BatteryCapacity;
             vehicle.CurrentSoc = dto.CurrentSoc;
+            vehicle.AverageConsumption = dto.AverageConsumption;
 
             _context.Vehicles.Update(vehicle);
             await _context.SaveChangesAsync();
@@ -89,6 +105,7 @@ namespace EvRoutePlanner.Api.Services
                 Model = vehicle.Model,
                 BatteryCapacity = vehicle.BatteryCapacity,
                 CurrentSoc = vehicle.CurrentSoc,
+                AverageConsumption = vehicle.AverageConsumption,
                 UserId = vehicle.UserId
             };
         }

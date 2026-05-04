@@ -13,6 +13,5 @@ namespace EvRoutePlanner.Api.Models
         public byte[] PasswordSalt { get; set; } = Array.Empty<byte>();
         public string Role { get; set; } = "User"; // "User" or "Admin"
         public List<Vehicle> Vehicles { get; set; } = new();
-
     }
 }

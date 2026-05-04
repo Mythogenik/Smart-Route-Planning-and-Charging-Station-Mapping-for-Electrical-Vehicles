@@ -27,9 +27,9 @@ namespace EvRoutePlanner.Api.Controllers
 
         
         [HttpGet("external/nearby")]
-        public async Task<IActionResult> GetExternalNearby([FromQuery] double lat, [FromQuery] double lon)
+        public async Task<IActionResult> GetExternalNearby([FromQuery] double lat, [FromQuery] double lon, [FromQuery] double distance = 10)
         {
-            var stations = await _ocmService.GetChargingStationsNearby(lat, lon);
+            var stations = await _ocmService.GetChargingStationsNearby(lat, lon, distance);
             return Ok(stations);
         }
     }

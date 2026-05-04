@@ -4,8 +4,9 @@ import { Login }   from './pages';
 import { Signup }  from './pages';
 import Dashboard   from './pages/Dashboard/Dashboard';
 import CreateRoute from './pages/CreateRoute/CreateRoute';
-import AddVehicle  from './pages/addVehicle/AddVehicle';
-import Stations    from './pages/stations/Stations';
+import AddVehicle  from './pages/AddVehicle/AddVehicle';
+import Stations    from './pages/Stations/Stations';
+import ViewRoute   from './pages/ViewRoute/ViewRoute';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="/create-route"  element={<CreateRoute />} />
         <Route path="/add-vehicle"   element={<AddVehicle />}  />
         <Route path="/stations"      element={<Stations />}    />
+        <Route path="/route/:id"     element={<ViewRoute />}   />
       </Routes>
     </BrowserRouter>
   );

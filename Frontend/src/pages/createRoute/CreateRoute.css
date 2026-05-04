@@ -410,3 +410,110 @@
   .cr-panel { width: 100%; height: auto; max-height: 50vh; border-right: none; border-bottom: 1px solid #e8e8e8; }
   .cr-map-wrap { flex: 1; min-height: 300px; }
 }
+
+/* ── CAR WARNING ─────────────────────────────────── */
+.cr-car-warning {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-left: 3px solid #e53e3e;
+  color: #e53e3e;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 10px 12px;
+}
+
+/* ── RANGE HINT ──────────────────────────────────── */
+.cr-range-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #aaa;
+  margin-top: 4px;
+}
+.cr-range-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #3ddc84; flex-shrink: 0;
+}
+
+/* ── STOPS LIST ──────────────────────────────────── */
+.cr-stops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.cr-stop-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #f0f0f0;
+  background: #fff;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.1s, border-color 0.1s;
+}
+.cr-stop-item:hover { background: #f0fdf6; border-color: #3ddc84; }
+
+.cr-stop-num {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #facc15; color: #0a0f0d;
+  font-size: 10px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.cr-stop-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cr-stop-name { font-size: 12px; font-weight: 700; color: #111; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cr-stop-address { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cr-stop-dist { font-size: 10px; color: #3ddc84; font-weight: 600; }
+.cr-stop-arrow { color: #3ddc84; font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+
+/* ── NO STOPS ────────────────────────────────────── */
+.cr-no-stops {
+  background: #f0fdf6;
+  border: 1px solid rgba(61,220,132,0.25);
+  border-left: 3px solid #3ddc84;
+  color: #3ddc84;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 12px 14px;
+}
+
+/* ── SAVED MSG ───────────────────────────────────── */
+.cr-saved-msg {
+  background: #f0fdf6;
+  border: 1px solid rgba(61,220,132,0.25);
+  color: #2ab870;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 10px 14px;
+  text-align: center;
+}
+
+/* ── GPS BUTTON ──────────────────────────────────── */
+.cr-gps-btn {
+  background: transparent;
+  border: 1.5px solid #333;
+  color: #888;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 7px 14px;
+  transition: all 0.15s;
+}
+.cr-gps-btn:hover { border-color: #4285f4; color: #4285f4; }
+.cr-gps-btn.active { border-color: #4285f4; color: #4285f4; background: rgba(66,133,244,0.1); }
+
+/* ── LOADING STATE ───────────────────────────────── */
+.cr-calculate.loading {
+  background: #333;
+  cursor: wait;
+  letter-spacing: 1px;
+}

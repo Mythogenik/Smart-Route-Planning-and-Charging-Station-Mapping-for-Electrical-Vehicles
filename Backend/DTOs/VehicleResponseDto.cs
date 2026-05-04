@@ -7,6 +7,7 @@ namespace EvRoutePlanner.Api.DTOs
         public required string Model { get; set; }
         public double BatteryCapacity { get; set; }
         public double CurrentSoc { get; set; }
+        public double AverageConsumption { get; set; }
         public int UserId { get; set; }
     }
 }

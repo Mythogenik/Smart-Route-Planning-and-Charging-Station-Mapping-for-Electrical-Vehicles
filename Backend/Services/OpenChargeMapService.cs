@@ -14,16 +14,23 @@ namespace EvRoutePlanner.Api.Services
             _configuration = configuration;
         }
 
-        public async Task<IEnumerable<ChargingStationDto>> GetChargingStationsNearby(double latitude, double longitude, int maxResults = 50)
+        public async Task<IEnumerable<ChargingStationDto>> GetChargingStationsNearby(double latitude, double longitude, double distanceKm)
         {
             try
             {
                 var apiKey = _configuration["OpenChargeMap:ApiKey"];
 
+                //      var url = $"v3/poi?output=json&" +
+                //$"latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
+                //$"longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
+                //$"distance=50&distanceunit=KM&maxresults={maxResults}&key={apiKey}";
                 var url = $"v3/poi?output=json&" +
-          $"latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
-          $"longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
-          $"distance=50&distanceunit=KM&maxresults={maxResults}&key={apiKey}";  
+                        $"latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
+                        $"longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
+                        $"distance={distanceKm.ToString(System.Globalization.CultureInfo.InvariantCulture)}&" +
+                        $"distanceunit=KM&" +
+                        $"maxresults=100&" +
+                        $"key={apiKey}";
 
                 if (!_httpClient.DefaultRequestHeaders.Contains("X-API-Key"))
                     _httpClient.DefaultRequestHeaders.Add("X-API-Key", apiKey);

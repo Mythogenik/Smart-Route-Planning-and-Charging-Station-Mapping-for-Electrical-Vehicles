@@ -12,6 +12,8 @@ namespace EvRoutePlanner.Api.Models
         public double BatteryCapacity { get; set; } // kWh
         public double CurrentSoc { get; set; } // State of Charge
 
+        public double AverageConsumption { get; set; }
+
         public int UserId { get; set; }
         public User? User { get; set; }
     }

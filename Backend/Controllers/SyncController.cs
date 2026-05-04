@@ -21,13 +21,13 @@ namespace EvRoutePlanner.Api.Controllers
         }
 
         [HttpPost("charging-stations")]
-        public async Task<IActionResult> SyncChargingStations([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] string? city = null)
+        public async Task<IActionResult> SyncChargingStations([FromQuery] double latitude, [FromQuery] double longitude, [FromQuery] double distance = 100, [FromQuery] string? city = null)
         {
             try
             {
                 Console.WriteLine($"[SYNC] Starting sync for {city ?? "coordinates"} (lat: {latitude}, lon: {longitude})");
 
-                var stationsFromApi = await _openChargeMapService.GetChargingStationsNearby(latitude, longitude);
+                var stationsFromApi = await _openChargeMapService.GetChargingStationsNearby(latitude, longitude, distance);
 
                 if (!stationsFromApi.Any())
                     return Ok(new { message = "No stations found in the area", city = city ?? "Unknown" });

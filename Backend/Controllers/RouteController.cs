@@ -1,8 +1,10 @@
 using EvRoutePlanner.Api.Interfaces;
 using EvRoutePlanner.Api.Models;
+using EvRoutePlanner.Api.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+
 
 namespace EvRoutePlanner.Api.Controllers
 {
@@ -19,18 +21,18 @@ namespace EvRoutePlanner.Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SaveRoute([FromBody] Models.Route route)
+        public async Task<IActionResult> SaveRoute([FromBody] SaveRouteDto dto)
         {
             try
             {
-                if (route == null)
+                if (dto == null)
                     return BadRequest(new { message = "Route data is required" });
 
                 var userId = GetUserId();
                 if (userId == 0)
                     return Unauthorized(new { message = "User not authenticated" });
 
-                var savedRoute = await _routeService.SaveRouteAsync(route, userId);
+                var savedRoute = await _routeService.SaveRouteAsync(dto, userId);
                 return CreatedAtAction(nameof(GetRouteById), new { id = savedRoute.Id }, savedRoute);
             }
             catch (InvalidOperationException ex)

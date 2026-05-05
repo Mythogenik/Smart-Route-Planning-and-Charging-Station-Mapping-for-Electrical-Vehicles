@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { calculateRoute } from '../../utils/RouteEngine';
+import { useTheme } from '../../context/ThemeContext';
+import { getMapStyles } from '../../utils/mapStyles';
 import './CreateRoute.css';
 
 const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY;
@@ -28,7 +30,7 @@ function loadGoogleMaps() {
   });
 }
 
-/** Reverse geocode a lat/lng to a place-like object */
+// Returns a place object whose geometry.location is a real maps.LatLng
 function reverseGeocode(maps, lat, lng) {
   return new Promise(resolve => {
     const geocoder = new maps.Geocoder();
@@ -37,14 +39,14 @@ function reverseGeocode(maps, lat, lng) {
       if (status === 'OK' && results[0]) {
         resolve({
           formatted_address: results[0].formatted_address,
-          name: results[0].formatted_address.split(',')[0],
-          geometry: { location: results[0].geometry.location },
+          name:              results[0].formatted_address.split(',')[0],
+          geometry:          { location: results[0].geometry.location },
         });
       } else {
         resolve({
           formatted_address: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-          name: `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
-          geometry: { location: latLng },
+          name:              `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+          geometry:          { location: latLng },
         });
       }
     });
@@ -54,38 +56,39 @@ function reverseGeocode(maps, lat, lng) {
 export default function CreateRoute() {
   const navigate        = useNavigate();
   const { currentUser } = useAuth();
+  const { theme }       = useTheme();
 
-  const mapRef              = useRef(null);
-  const mapInstance         = useRef(null);
-  const startInputRef       = useRef(null);
-  const endInputRef         = useRef(null);
-  const startAcRef          = useRef(null);
-  const endAcRef            = useRef(null);
-  const directionsRenderer  = useRef(null);
-  const startMarker         = useRef(null);
-  const endMarker           = useRef(null);
-  const stopMarkersRef      = useRef([]);
-  const userMarkerRef       = useRef(null);
-  const watchIdRef          = useRef(null);
+  const mapRef             = useRef(null);
+  const mapInstance        = useRef(null);
+  const startInputRef      = useRef(null);
+  const endInputRef        = useRef(null);
+  const startAcRef         = useRef(null);
+  const endAcRef           = useRef(null);
+  const directionsRenderer = useRef(null);
+  const startMarker        = useRef(null);
+  const endMarker          = useRef(null);
+  const stopMarkersRef     = useRef([]);
+  const userMarkerRef      = useRef(null);
+  const watchIdRef         = useRef(null);
   const directionsResultRef = useRef(null);
 
-  const [mapsLoaded,       setMapsLoaded]       = useState(false);
-  const [mapsError,        setMapsError]        = useState('');
-  const [startPlace,       setStartPlace]       = useState(null);
-  const [endPlace,         setEndPlace]         = useState(null);
-  const [startVal,         setStartVal]         = useState('');
-  const [endVal,           setEndVal]           = useState('');
-  const [routeInfo,        setRouteInfo]        = useState(null);
-  const [selectedCar,      setSelectedCar]      = useState(null);
-  const [calculating,      setCalculating]      = useState(false);
-  const [calculatedRoute,  setCalculatedRoute]  = useState(null);
-  const [carWarning,       setCarWarning]       = useState(false);
-  const [trackingGPS,      setTrackingGPS]      = useState(false);
-  const [savedMsg,         setSavedMsg]         = useState('');
-  const [gpsLoading,       setGpsLoading]       = useState(false);
+  const [mapsLoaded,      setMapsLoaded]      = useState(false);
+  const [mapsError,       setMapsError]       = useState('');
+  const [startPlace,      setStartPlace]      = useState(null);
+  const [endPlace,        setEndPlace]        = useState(null);
+  const [startVal,        setStartVal]        = useState('');
+  const [endVal,          setEndVal]          = useState('');
+  const [routeInfo,       setRouteInfo]       = useState(null);
+  const [selectedCar,     setSelectedCar]     = useState(null);
+  const [calculating,     setCalculating]     = useState(false);
+  const [calculatedRoute, setCalculatedRoute] = useState(null);
+  const [carWarning,      setCarWarning]      = useState(false);
+  const [trackingGPS,     setTrackingGPS]     = useState(false);
+  const [savedMsg,        setSavedMsg]        = useState('');
+  const [gpsLoading,      setGpsLoading]      = useState(false);
+  const [userCars,        setUserCars]        = useState([]);
 
-  const [userCars, setUserCars] = useState([]);
-
+  // load vehicles from API
   useEffect(() => {
     import('../../utils/api').then(({ apiGetVehicles, mapVehicleFromApi }) => {
       apiGetVehicles().then(vehicles => {
@@ -94,41 +97,41 @@ export default function CreateRoute() {
     });
   }, []);
 
+  // load Google Maps
   useEffect(() => {
     loadGoogleMaps()
       .then(() => setMapsLoaded(true))
       .catch(() => setMapsError('Could not load Google Maps. Check your API key.'));
   }, []);
 
-  // ── create a draggable marker ─────────────────────
+  // create a draggable marker
   function makeDraggableMarker(maps, position, isStart) {
     const marker = new maps.Marker({
       position,
-      map: mapInstance.current,
+      map:       mapInstance.current,
       draggable: true,
       icon: {
-        path: maps.SymbolPath.CIRCLE,
-        scale: 10,
-        fillColor: isStart ? '#3ddc84' : '#111',
+        path:        maps.SymbolPath.CIRCLE,
+        scale:       10,
+        fillColor:   isStart ? '#3ddc84' : '#111',
         fillOpacity: 1,
         strokeColor: '#fff',
         strokeWeight: 2.5,
       },
       label: {
-        text: isStart ? 'A' : 'B',
-        color: isStart ? '#0a0f0d' : '#ffffff',
-        fontSize: '11px', fontWeight: 'bold',
+        text:      isStart ? 'A' : 'B',
+        color:     isStart ? '#0a0f0d' : '#ffffff',
+        fontSize:  '11px',
+        fontWeight: 'bold',
       },
       cursor: 'grab',
     });
 
-    // on drag end — reverse geocode the new position
     marker.addListener('dragend', async () => {
-      const pos = marker.getPosition();
-      const lat = pos.lat();
-      const lng = pos.lng();
+      const pos   = marker.getPosition();
+      const lat   = pos.lat();
+      const lng   = pos.lng();
       const place = await reverseGeocode(maps, lat, lng);
-
       if (isStart) {
         setStartPlace(place);
         setStartVal(place.formatted_address);
@@ -145,25 +148,18 @@ export default function CreateRoute() {
     return marker;
   }
 
+  // init map
   useEffect(() => {
     if (!mapsLoaded || !mapRef.current) return;
     const maps = window.google.maps;
 
     mapInstance.current = new maps.Map(mapRef.current, {
-      center: { lat: 37.0, lng: 35.3 },
-      zoom: 6,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: false,
-      styles: [
-        { featureType: 'poi',           elementType: 'labels', stylers: [{ visibility: 'off' }] },
-        { featureType: 'transit',       elementType: 'labels', stylers: [{ visibility: 'off' }] },
-        { featureType: 'water',         elementType: 'geometry', stylers: [{ color: '#c9d8f0' }] },
-        { featureType: 'landscape',     elementType: 'geometry', stylers: [{ color: '#f4f5f7' }] },
-        { featureType: 'road.highway',  elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-        { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-        { featureType: 'road.local',    elementType: 'geometry', stylers: [{ color: '#f0f0f0' }] },
-      ],
+      center:             { lat: 37.0, lng: 35.3 },
+      zoom:               6,
+      mapTypeControl:     false,
+      streetViewControl:  false,
+      fullscreenControl:  false,
+      styles:             getMapStyles(theme),
     });
 
     directionsRenderer.current = new maps.DirectionsRenderer({
@@ -180,7 +176,8 @@ export default function CreateRoute() {
       if (!place.geometry) return;
       setStartPlace(place);
       setStartVal(place.formatted_address || place.name);
-      setCalculatedRoute(null); setSavedMsg('');
+      setCalculatedRoute(null);
+      setSavedMsg('');
     });
 
     endAcRef.current = new maps.places.Autocomplete(endInputRef.current, {
@@ -191,13 +188,23 @@ export default function CreateRoute() {
       if (!place.geometry) return;
       setEndPlace(place);
       setEndVal(place.formatted_address || place.name);
-      setCalculatedRoute(null); setSavedMsg('');
+      setCalculatedRoute(null);
+      setSavedMsg('');
     });
   }, [mapsLoaded]);
+
+  // update map styles when theme changes
+  useEffect(() => {
+    if (mapInstance.current) {
+      mapInstance.current.setOptions({ styles: getMapStyles(theme) });
+    }
+  }, [theme]);
 
   const drawBaseRoute = useCallback(() => {
     if (!startPlace || !endPlace || !mapInstance.current) return;
     const maps = window.google.maps;
+    if (!maps) return;
+
     stopMarkersRef.current.forEach(m => m.setMap(null));
     stopMarkersRef.current = [];
     if (startMarker.current) startMarker.current.setMap(null);
@@ -208,7 +215,11 @@ export default function CreateRoute() {
 
     const svc = new maps.DirectionsService();
     svc.route(
-      { origin: startPlace.geometry.location, destination: endPlace.geometry.location, travelMode: maps.TravelMode.DRIVING },
+      {
+        origin:      startPlace.geometry.location,
+        destination: endPlace.geometry.location,
+        travelMode:  maps.TravelMode.DRIVING,
+      },
       (result, status) => {
         if (status === 'OK') {
           directionsRenderer.current.setDirections(result);
@@ -221,34 +232,44 @@ export default function CreateRoute() {
   }, [startPlace, endPlace]);
 
   useEffect(() => {
+    const maps = window.google?.maps;
+    if (!maps || !mapInstance.current) return;
+
     if (startPlace && !endPlace) {
-      mapInstance.current?.panTo(startPlace.geometry.location);
-      mapInstance.current?.setZoom(13);
+      mapInstance.current.panTo(startPlace.geometry.location);
+      mapInstance.current.setZoom(13);
       if (startMarker.current) startMarker.current.setMap(null);
-      const maps = window.google.maps;
       startMarker.current = makeDraggableMarker(maps, startPlace.geometry.location, true);
     }
     if (startPlace && endPlace) drawBaseRoute();
   }, [startPlace, endPlace, drawBaseRoute]);
 
-  // ── Use my location as start ──────────────────────
   async function useMyLocation() {
     if (!navigator.geolocation) return;
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
       async pos => {
-        const { latitude: lat, longitude: lng } = pos.coords;
-        const maps  = window.google.maps;
-        const place = await reverseGeocode(maps, lat, lng);
-        setStartPlace(place);
-        setStartVal(place.formatted_address);
-        if (startInputRef.current) startInputRef.current.value = place.formatted_address;
-        mapInstance.current?.panTo({ lat, lng });
-        mapInstance.current?.setZoom(13);
-        setCalculatedRoute(null); setSavedMsg('');
+        try {
+          const { latitude: lat, longitude: lng } = pos.coords;
+          const maps  = window.google.maps;
+          const place = await reverseGeocode(maps, lat, lng);
+          setStartPlace(place);
+          setStartVal(place.formatted_address);
+          if (startInputRef.current) startInputRef.current.value = place.formatted_address;
+          mapInstance.current?.panTo({ lat, lng });
+          mapInstance.current?.setZoom(13);
+          setCalculatedRoute(null);
+          setSavedMsg('');
+        } catch (err) {
+          console.error('useMyLocation error:', err);
+        } finally {
+          setGpsLoading(false);
+        }
+      },
+      err => {
+        console.error('Geolocation error:', err);
         setGpsLoading(false);
       },
-      () => setGpsLoading(false),
       { timeout: 8000 }
     );
   }
@@ -260,11 +281,11 @@ export default function CreateRoute() {
     stops.forEach(stop => {
       const marker = new maps.Marker({
         position: { lat: stop.lat, lng: stop.lng },
-        map: mapInstance.current,
-        title: stop.name,
-        icon: { path: maps.SymbolPath.CIRCLE, scale: 11, fillColor: '#facc15', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 },
-        label: { text: '⚡', fontSize: '11px' },
-        zIndex: 200,
+        map:      mapInstance.current,
+        title:    stop.name,
+        icon:     { path: maps.SymbolPath.CIRCLE, scale: 11, fillColor: '#facc15', fillOpacity: 1, strokeColor: '#fff', strokeWeight: 2 },
+        label:    { text: '⚡', fontSize: '11px' },
+        zIndex:   200,
       });
       marker.addListener('click', () => {
         mapInstance.current.panTo({ lat: stop.lat, lng: stop.lng });
@@ -281,11 +302,11 @@ export default function CreateRoute() {
     try {
       const route = await calculateRoute({
         startPlace, endPlace,
-        car:              selectedCar,
-        maps:             window.google.maps,
-        mapInstance:      mapInstance.current,
+        car:             selectedCar,
+        maps:            window.google.maps,
+        mapInstance:     mapInstance.current,
         directionsResult: directionsResultRef.current,
-        userEmail:        currentUser?.email,
+        userEmail:       currentUser?.email,
       });
       setCalculatedRoute(route);
       plotStopMarkers(route.stops);
@@ -328,7 +349,9 @@ export default function CreateRoute() {
     setTrackingGPS(false);
   }
 
-  useEffect(() => () => { if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current); }, []);
+  useEffect(() => () => {
+    if (watchIdRef.current) navigator.geolocation.clearWatch(watchIdRef.current);
+  }, []);
 
   function clearRoute() {
     setStartPlace(null); setEndPlace(null); setStartVal(''); setEndVal('');
@@ -376,12 +399,8 @@ export default function CreateRoute() {
                     placeholder="Search starting location..." value={startVal}
                     onChange={e => setStartVal(e.target.value)}/>
                 </div>
-                <button
-                  className={`cr-my-loc-btn ${gpsLoading ? 'loading' : ''}`}
-                  onClick={useMyLocation}
-                  title="Use my current location"
-                  disabled={gpsLoading}
-                >
+                <button className={`cr-my-loc-btn ${gpsLoading ? 'loading' : ''}`}
+                  onClick={useMyLocation} title="Use my current location" disabled={gpsLoading}>
                   {gpsLoading ? '⏳' : '◎'}
                 </button>
               </div>
@@ -406,12 +425,18 @@ export default function CreateRoute() {
             <div className="cr-route-info">
               <div className="cr-route-info-item">
                 <span className="cr-route-info-icon">↔</span>
-                <div><span className="cr-route-info-val">{routeInfo.distance}</span><span className="cr-route-info-sub">Total distance</span></div>
+                <div>
+                  <span className="cr-route-info-val">{routeInfo.distance}</span>
+                  <span className="cr-route-info-sub">Total distance</span>
+                </div>
               </div>
               <div className="cr-route-info-divider"/>
               <div className="cr-route-info-item">
                 <span className="cr-route-info-icon">⏱</span>
-                <div><span className="cr-route-info-val">{routeInfo.duration}</span><span className="cr-route-info-sub">Est. drive time</span></div>
+                <div>
+                  <span className="cr-route-info-val">{routeInfo.duration}</span>
+                  <span className="cr-route-info-sub">Est. drive time</span>
+                </div>
               </div>
             </div>
           )}
@@ -436,9 +461,9 @@ export default function CreateRoute() {
                         <rect x="0" y="8" width="40" height="12" rx="3" fill={selectedCar?.id === car.id ? '#3ddc84' : '#1a1a2e'}/>
                         <path d="M6 8 Q9 2 13 2 L27 2 Q33 2 35 8Z" fill={selectedCar?.id === car.id ? '#2ab870' : '#141428'}/>
                         <path d="M8 7.5 Q10.5 3 13 3 L26 3 Q31 3 33 7.5Z" fill="#4a9fd4" opacity="0.8"/>
-                        <circle cx="9"  cy="20" r="4" fill="#111"/><circle cx="9"  cy="20" r="2" fill="#444"/>
+                        <circle cx="9" cy="20" r="4" fill="#111"/><circle cx="9" cy="20" r="2" fill="#444"/>
                         <circle cx="31" cy="20" r="4" fill="#111"/><circle cx="31" cy="20" r="2" fill="#444"/>
-                        <circle cx="1"  cy="13" r="1.5" fill={selectedCar?.id === car.id ? '#fff' : '#3ddc84'}/>
+                        <circle cx="1" cy="13" r="1.5" fill={selectedCar?.id === car.id ? '#fff' : '#3ddc84'}/>
                       </svg>
                     </div>
                     <div className="cr-car-info">

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import './AddVehicle.css';
 
 const EV_API_KEY = import.meta.env.VITE_EV_API_KEY;
@@ -305,8 +306,8 @@ export default function AddVehicle() {
   async function handleSave() {
     if (!selectedCar) return;
     try {
-      const { apiCreateVehicle, mapVehicleFromApi } = await import('../../utils/api');
-      const newVehicle = await apiCreateVehicle({
+      const { apiCreateVehicle } = await import('../../utils/api');
+      await apiCreateVehicle({
         make:        selectedCar.make,
         model:       selectedCar.model,
         year:        Number(specs.year)        || 0,
@@ -317,11 +318,6 @@ export default function AddVehicle() {
         battery:     Number(specs.battery)     || 0,
         consumption: Number(specs.consumption) || 0,
       });
-      const mapped = mapVehicleFromApi(newVehicle);
-      mapped.ownerEmail = JSON.parse(localStorage.getItem('ev_current_user'))?.email;
-      const cars = JSON.parse(localStorage.getItem('ev_cars') || '[]');
-      cars.push(mapped);
-      localStorage.setItem('ev_cars', JSON.stringify(cars));
       navigate('/dashboard');
     } catch (e) {
       console.error('Failed to save vehicle:', e);

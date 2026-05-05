@@ -1,11 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700;800;900&display=swap');
+
+/* ── THEME VARIABLES ─────────────────────────────── */
 :root {
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: 'DM Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Brand */
+  --green:        #3ddc84;
+  --green-dark:   #2ab870;
+  --green-dim:    rgba(61, 220, 132, 0.12);
+  --green-border: rgba(61, 220, 132, 0.25);
+
+  /* Light theme (default) */
+  --bg:           #f4f5f7;
+  --surface:      #ffffff;
+  --surface-2:    #f9f9f9;
+  --border:       #ebebeb;
+  --border-2:     #f0f0f0;
+
+  --text-primary:   #111111;
+  --text-secondary: #555555;
+  --text-muted:     #aaaaaa;
+  --text-faint:     #bbbbbb;
+
+  --sidebar-bg:     #111111;
+  --sidebar-border: #1e1e1e;
+  --sidebar-hover:  #1a1a1a;
+  --sidebar-active: rgba(61, 220, 132, 0.10);
+  --sidebar-icon:   #555555;
+  --sidebar-label:  #777777;
+  --sidebar-text:   #cccccc;
+  --sidebar-sub:    #555555;
+
+  --topbar-bg:      #ffffff;
+  --topbar-border:  #e8e8e8;
+
+  --btn-bg:         #111111;
+  --btn-text:       #ffffff;
+
+  --stat-bg:        linear-gradient(135deg, #f0fdf6 0%, #f9f9f9 100%);
+  --stat-border:    #d0f5e3;
+  --stat-label:     #3ddc84;
+  --stat-div:       #d0f5e3;
+
+  --card-hover-shadow: 0 6px 28px rgba(0,0,0,0.08);
+
+  --input-bg:       #ffffff;
+  --input-border:   #e0e0e0;
+  --input-text:     #111111;
+  --input-placeholder: #aaaaaa;
+
+  --dropdown-bg:    #1a1a1a;
+  --dropdown-border:#2a2a2a;
+  --dropdown-hover: #222222;
+  --dropdown-text:  #aaaaaa;
+
+  --overlay-bg:     rgba(0,0,0,0.3);
 }
 
+/* ── DARK THEME ──────────────────────────────────── */
+[data-theme="dark"] {
+  --bg:           #0d0d0d;
+  --surface:      #1a1a1a;
+  --surface-2:    #222222;
+  --border:       #2a2a2a;
+  --border-2:     #333333;
+
+  --text-primary:   #f0f0f0;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #666666;
+  --text-faint:     #555555;
+
+  --sidebar-bg:     #111111;
+  --sidebar-border: #1e1e1e;
+  --sidebar-hover:  #1a1a1a;
+  --sidebar-active: rgba(61, 220, 132, 0.10);
+  --sidebar-icon:   #555555;
+  --sidebar-label:  #777777;
+  --sidebar-text:   #cccccc;
+  --sidebar-sub:    #555555;
+
+  --topbar-bg:      #1a1a1a;
+  --topbar-border:  #2a2a2a;
+
+  --btn-bg:         #3ddc84;
+  --btn-text:       #0a0f0d;
+
+  --stat-bg:        linear-gradient(135deg, #1a2e22 0%, #1a1a1a 100%);
+  --stat-border:    #2a4a35;
+  --stat-label:     #3ddc84;
+  --stat-div:       #2a4a35;
+
+  --card-hover-shadow: 0 6px 28px rgba(0,0,0,0.4);
+
+  --input-bg:       #222222;
+  --input-border:   #333333;
+  --input-text:     #f0f0f0;
+  --input-placeholder: #666666;
+
+  --dropdown-bg:    #222222;
+  --dropdown-border:#333333;
+  --dropdown-hover: #2a2a2a;
+  --dropdown-text:  #aaaaaa;
+
+  --overlay-bg:     rgba(0,0,0,0.6);
+}
+
+/* ── BASE ────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -14,6 +118,10 @@
 
 body {
   min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--sans);
+  transition: background 0.2s, color 0.2s;
 }
 
 #root {

@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EvRoutePlanner.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b8fccf7adcf50b15d2d2362dcb80ab6a0d614f6b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5498af789a95d3482420b2e663a0bcfb1eb5f376")]
 [assembly: System.Reflection.AssemblyProductAttribute("EvRoutePlanner.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EvRoutePlanner.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

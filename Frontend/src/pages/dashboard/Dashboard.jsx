@@ -1,14 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { apiGetVehicles, apiDeleteVehicle, mapVehicleFromApi, apiGetRoutes, apiDeleteRoute, mapRouteFromApi } from '../../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import './Dashboard.css';
+import { apiGetVehicles, apiDeleteVehicle, mapVehicleFromApi, apiGetRoutes, apiDeleteRoute, mapRouteFromApi } from '../../utils/api';
 
 const NAV_ITEMS = [
   { id: 'dashboard', icon: '⊞', label: 'Dashboard' },
-  { id: 'routes', icon: '⟶', label: 'My Routes' },
-  { id: 'stations', icon: '⚡', label: 'Stations' },
-  { id: 'vehicles', icon: '◻', label: 'My Vehicles' },
+  { id: 'routes',    icon: '⟶', label: 'My Routes'  },
+  { id: 'stations',  icon: '⚡', label: 'Stations'   },
+  { id: 'vehicles',  icon: '◻', label: 'My Vehicles' },
 ];
 
 function shadeColor(hex, pct) {
@@ -24,25 +25,28 @@ function shadeColor(hex, pct) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { currentUser, logout } = useAuth();
+  const { theme, toggleTheme }  = useTheme();
 
-  const [activeNav, setActiveNav] = useState('dashboard');
+  const [activeNav,    setActiveNav]    = useState('dashboard');
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [userCars, setUserCars] = useState([]);
+  const [userCars,    setUserCars]    = useState([]);
+  const [userRoutes,  setUserRoutes]  = useState([]);
   const dropdownRef = useRef(null);
 
-  const [userRoutes, setUserRoutes] = useState([]);
-  const totalStops = userRoutes.reduce((sum, r) => sum + r.stops.length, 0);
+  const totalStops = userRoutes.reduce((sum, r) => sum + (r.stops?.length || 0), 0);
 
+  // load routes from API
   useEffect(() => {
     apiGetRoutes().then(routes => {
       if (routes) setUserRoutes(routes.map(mapRouteFromApi));
-    }).catch(() => { });
+    }).catch(err => console.error('Routes error:', err));
   }, []);
+
   // load vehicles from API
   useEffect(() => {
     apiGetVehicles()
       .then(vehicles => { if (vehicles) setUserCars(vehicles.map(mapVehicleFromApi)); })
-      .catch(() => { });
+      .catch(() => {});
   }, []);
 
   // close dropdown on outside click
@@ -147,14 +151,16 @@ export default function Dashboard() {
 
           {dropdownOpen && (
             <div className="account-dropdown">
-              <button className="dropdown-item" onClick={() => { setActiveNav('vehicles'); setDropdownOpen(false); }}>
-                <span>◻</span> Add Vehicle
-              </button>
-              <button className="dropdown-item" onClick={() => { setActiveNav('routes'); setDropdownOpen(false); }}>
-                <span>⟶</span> View Routes
-              </button>
               <button className="dropdown-item" onClick={() => { setActiveNav('account'); setDropdownOpen(false); }}>
                 <span>○</span> Account Info
+              </button>
+              <div className="dropdown-divider" />
+              <button className="dropdown-item-toggle" onClick={toggleTheme}>
+                <div className="dropdown-item-toggle-left">
+                  <span>{theme === 'dark' ? '☀' : '◑'}</span>
+                  <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                </div>
+                <div className={`toggle-switch ${theme === 'dark' ? 'on' : ''}`} />
               </button>
               <div className="dropdown-divider" />
               <button className="dropdown-item dropdown-item--danger" onClick={handleLogout}>
@@ -172,10 +178,10 @@ export default function Dashboard() {
           <div className="topbar-left">
             <h1 className="topbar-title">
               {activeNav === 'dashboard' && 'Dashboard'}
-              {activeNav === 'routes' && 'My Routes'}
-              {activeNav === 'stations' && 'Stations'}
-              {activeNav === 'vehicles' && 'My Vehicles'}
-              {activeNav === 'account' && 'Account Info'}
+              {activeNav === 'routes'    && 'My Routes'}
+              {activeNav === 'stations'  && 'Stations'}
+              {activeNav === 'vehicles'  && 'My Vehicles'}
+              {activeNav === 'account'   && 'Account Info'}
             </h1>
             <span className="topbar-greeting">
               Welcome back, {currentUser?.firstName || currentUser?.email?.split('@')[0] || 'driver'} 👋
@@ -191,10 +197,10 @@ export default function Dashboard() {
           <div className="content">
             <div className="stat-cards">
               {[
-                { label: 'Total Routes', value: userRoutes.length, icon: '⟶', sub: userRoutes.length === 0 ? 'No routes yet' : `${userRoutes.length} saved` },
-                { label: 'Charging Stops', value: totalStops, icon: '⚡', sub: 'Across all routes' },
-                { label: 'km Planned', value: userRoutes.reduce((s, r) => s + r.totalDistanceKm, 0) || '—', icon: '🔋', sub: 'Total distance' },
-                { label: 'Vehicles', value: userCars.length || '—', icon: '◻', sub: 'In your garage' },
+                { label: 'Total Routes',   value: userRoutes.length, icon: '⟶', sub: userRoutes.length === 0 ? 'No routes yet' : `${userRoutes.length} saved` },
+                { label: 'Charging Stops', value: totalStops,         icon: '⚡', sub: 'Across all routes' },
+                { label: 'km Planned',     value: userRoutes.reduce((s, r) => s + r.totalDistanceKm, 0) || '—', icon: '🔋', sub: 'Total distance' },
+                { label: 'Vehicles',       value: userCars.length || '—', icon: '◻', sub: 'In your garage' },
               ].map((c, i) => (
                 <div className="stat-card" key={i}>
                   <div className="stat-card-top">
@@ -217,53 +223,53 @@ export default function Dashboard() {
                   <svg viewBox="0 0 900 400" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
                     <defs>
                       <linearGradient id="dbSky" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#daeef8" />
-                        <stop offset="100%" stopColor="#e8f5e9" />
+                        <stop offset="0%" stopColor="#daeef8"/>
+                        <stop offset="100%" stopColor="#e8f5e9"/>
                       </linearGradient>
                       <linearGradient id="dbRoad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#555" />
-                        <stop offset="100%" stopColor="#333" />
+                        <stop offset="0%" stopColor="#555"/>
+                        <stop offset="100%" stopColor="#333"/>
                       </linearGradient>
                     </defs>
-                    <rect width="900" height="400" fill="url(#dbSky)" />
+                    <rect width="900" height="400" fill="url(#dbSky)"/>
                     <g fill="#7aa8c0" opacity="0.4">
-                      <rect x="0" y="180" width="40" height="220" /><rect x="45" y="140" width="55" height="260" />
-                      <rect x="108" y="200" width="30" height="200" /><rect x="145" y="160" width="48" height="240" />
-                      <rect x="200" y="120" width="65" height="280" /><rect x="275" y="175" width="38" height="225" />
-                      <rect x="540" y="155" width="58" height="245" /><rect x="608" y="185" width="38" height="215" />
-                      <rect x="654" y="135" width="62" height="265" /><rect x="725" y="178" width="42" height="222" />
-                      <rect x="776" y="155" width="55" height="245" /><rect x="840" y="195" width="35" height="205" />
+                      <rect x="0" y="180" width="40" height="220"/><rect x="45" y="140" width="55" height="260"/>
+                      <rect x="108" y="200" width="30" height="200"/><rect x="145" y="160" width="48" height="240"/>
+                      <rect x="200" y="120" width="65" height="280"/><rect x="275" y="175" width="38" height="225"/>
+                      <rect x="540" y="155" width="58" height="245"/><rect x="608" y="185" width="38" height="215"/>
+                      <rect x="654" y="135" width="62" height="265"/><rect x="725" y="178" width="42" height="222"/>
+                      <rect x="776" y="155" width="55" height="245"/><rect x="840" y="195" width="35" height="205"/>
                     </g>
-                    <rect x="0" y="290" width="900" height="110" fill="url(#dbRoad)" />
-                    <rect x="0" y="287" width="900" height="7" fill="#3a3a3a" />
-                    <line x1="0" y1="342" x2="900" y2="342" stroke="#fff" strokeWidth="2.5" strokeDasharray="40 20" opacity="0.25" />
+                    <rect x="0" y="290" width="900" height="110" fill="url(#dbRoad)"/>
+                    <rect x="0" y="287" width="900" height="7" fill="#3a3a3a"/>
+                    <line x1="0" y1="342" x2="900" y2="342" stroke="#fff" strokeWidth="2.5" strokeDasharray="40 20" opacity="0.25"/>
                     <g transform="translate(370, 248)">
-                      <rect x="0" y="28" width="160" height="50" rx="8" fill="#1a1a2e" />
-                      <path d="M26 28 Q40 4 62 4 L108 4 Q132 4 136 28Z" fill="#141428" />
-                      <path d="M31 27 Q43 8 62 8 L105 8 Q124 8 129 27Z" fill="#4a9fd4" opacity="0.85" />
-                      <circle cx="32" cy="78" r="18" fill="#1a1a1a" /><circle cx="32" cy="78" r="10" fill="#3a3a3a" /><circle cx="32" cy="78" r="4" fill="#555" />
-                      <circle cx="128" cy="78" r="18" fill="#1a1a1a" /><circle cx="128" cy="78" r="10" fill="#3a3a3a" /><circle cx="128" cy="78" r="4" fill="#555" />
-                      <rect x="152" y="38" width="10" height="6" rx="3" fill="#fffde7" opacity="0.95" />
-                      <circle cx="4" cy="44" r="5" fill="#3ddc84" opacity="0.95" />
-                      <rect x="0" y="57" width="160" height="3" fill="#3ddc84" opacity="0.4" />
+                      <rect x="0" y="28" width="160" height="50" rx="8" fill="#1a1a2e"/>
+                      <path d="M26 28 Q40 4 62 4 L108 4 Q132 4 136 28Z" fill="#141428"/>
+                      <path d="M31 27 Q43 8 62 8 L105 8 Q124 8 129 27Z" fill="#4a9fd4" opacity="0.85"/>
+                      <circle cx="32" cy="78" r="18" fill="#1a1a1a"/><circle cx="32" cy="78" r="10" fill="#3a3a3a"/><circle cx="32" cy="78" r="4" fill="#555"/>
+                      <circle cx="128" cy="78" r="18" fill="#1a1a1a"/><circle cx="128" cy="78" r="10" fill="#3a3a3a"/><circle cx="128" cy="78" r="4" fill="#555"/>
+                      <rect x="152" y="38" width="10" height="6" rx="3" fill="#fffde7" opacity="0.95"/>
+                      <circle cx="4" cy="44" r="5" fill="#3ddc84" opacity="0.95"/>
+                      <rect x="0" y="57" width="160" height="3" fill="#3ddc84" opacity="0.4"/>
                     </g>
                     <g transform="translate(640, 195)">
-                      <rect x="0" y="0" width="44" height="96" rx="6" fill="#0f1e2a" />
-                      <rect x="5" y="9" width="34" height="44" rx="4" fill="#0a1520" />
-                      <rect x="8" y="12" width="28" height="34" rx="2" fill="#001a0d" />
+                      <rect x="0" y="0" width="44" height="96" rx="6" fill="#0f1e2a"/>
+                      <rect x="5" y="9" width="34" height="44" rx="4" fill="#0a1520"/>
+                      <rect x="8" y="12" width="28" height="34" rx="2" fill="#001a0d"/>
                       <text x="22" y="26" textAnchor="middle" fontSize="7" fill="#3ddc84" fontFamily="monospace" fontWeight="bold">EV</text>
                       <text x="22" y="36" textAnchor="middle" fontSize="6" fill="#3ddc84" fontFamily="monospace">CHARGE</text>
                       <text x="22" y="47" textAnchor="middle" fontSize="10" fill="#5ff0a0" fontFamily="monospace">⚡</text>
-                      <circle cx="22" cy="63" r="4" fill="#3ddc84" opacity="0.9" />
-                      <rect x="-8" y="93" width="60" height="7" rx="3" fill="#0a0a0a" />
+                      <circle cx="22" cy="63" r="4" fill="#3ddc84" opacity="0.9"/>
+                      <rect x="-8" y="93" width="60" height="7" rx="3" fill="#0a0a0a"/>
                     </g>
                     <g>
-                      <rect x="310" y="100" width="280" height="110" rx="10" fill="#fff" opacity="0.92" />
+                      <rect x="310" y="100" width="280" height="110" rx="10" fill="#fff" opacity="0.92"/>
                       <text x="450" y="133" textAnchor="middle" fontSize="22" fill="#3ddc84">⚡</text>
                       <text x="450" y="158" textAnchor="middle" fontSize="14" fill="#111" fontFamily="DM Sans, sans-serif" fontWeight="700">No routes yet</text>
                       <text x="450" y="178" textAnchor="middle" fontSize="11" fill="#888" fontFamily="DM Sans, sans-serif">Hit "Create Route" to plan your first trip</text>
                     </g>
-                    <path d="M60 300 Q200 282 370 295 Q500 305 640 282 Q750 264 880 272" stroke="#3ddc84" strokeWidth="2.5" fill="none" strokeDasharray="10 6" strokeLinecap="round" opacity="0.35" />
+                    <path d="M60 300 Q200 282 370 295 Q500 305 640 282 Q750 264 880 272" stroke="#3ddc84" strokeWidth="2.5" fill="none" strokeDasharray="10 6" strokeLinecap="round" opacity="0.35"/>
                   </svg>
                 </div>
               </div>
@@ -278,7 +284,7 @@ export default function Dashboard() {
                   <div className="db-route-summary">
                     <div className="db-route-points">
                       <div className="db-route-point">
-                        <div className="db-route-dot db-dot-green" />
+                        <div className="db-route-dot db-dot-green"/>
                         <div>
                           <div className="db-route-point-label">FROM</div>
                           <div className="db-route-point-name">{last.origin.name}</div>
@@ -286,9 +292,9 @@ export default function Dashboard() {
                       </div>
                       {last.stops.map((stop, i) => (
                         <div key={i}>
-                          <div className="db-route-line" />
+                          <div className="db-route-line"/>
                           <div className="db-route-point">
-                            <div className="db-route-dot db-dot-yellow" />
+                            <div className="db-route-dot db-dot-yellow"/>
                             <div>
                               <div className="db-route-point-label">⚡ STOP {i + 1} · {stop.distanceFromStartKm} km</div>
                               <div className="db-route-point-name">{stop.name}</div>
@@ -297,9 +303,9 @@ export default function Dashboard() {
                           </div>
                         </div>
                       ))}
-                      <div className="db-route-line" />
+                      <div className="db-route-line"/>
                       <div className="db-route-point">
-                        <div className="db-route-dot db-dot-dark" />
+                        <div className="db-route-dot db-dot-dark"/>
                         <div>
                           <div className="db-route-point-label">TO</div>
                           <div className="db-route-point-name">{last.destination.name}</div>
@@ -311,17 +317,17 @@ export default function Dashboard() {
                         <span className="db-route-stat-val">{last.totalDistanceKm} km</span>
                         <span className="db-route-stat-label">Distance</span>
                       </div>
-                      <div className="db-route-stat-div" />
+                      <div className="db-route-stat-div"/>
                       <div className="db-route-stat">
                         <span className="db-route-stat-val">{formatDur(last.totalDuration)}</span>
                         <span className="db-route-stat-label">Drive time</span>
                       </div>
-                      <div className="db-route-stat-div" />
+                      <div className="db-route-stat-div"/>
                       <div className="db-route-stat">
                         <span className="db-route-stat-val">{last.stops.length}</span>
                         <span className="db-route-stat-label">Stops</span>
                       </div>
-                      <div className="db-route-stat-div" />
+                      <div className="db-route-stat-div"/>
                       <div className="db-route-stat">
                         <span className="db-route-stat-val">{last.car.make}</span>
                         <span className="db-route-stat-label">{last.car.model}</span>
@@ -344,7 +350,7 @@ export default function Dashboard() {
               <div className="empty-panel">
                 <div className="empty-icon">⟶</div>
                 <h2 className="empty-title">No routes yet</h2>
-                <p className="empty-desc">Create your first route and it will appear here.<br />EV Router will optimise your charging stops automatically.</p>
+                <p className="empty-desc">Create your first route and it will appear here.<br/>EV Router will optimise your charging stops automatically.</p>
                 <button className="btn-create-route-lg" onClick={() => navigate('/create-route')}>+ CREATE YOUR FIRST ROUTE</button>
               </div>
             ) : (
@@ -375,12 +381,12 @@ export default function Dashboard() {
                         <span className="route-stat-unit">km</span>
                         <span className="route-stat-label">Distance</span>
                       </div>
-                      <div className="route-stat-div" />
+                      <div className="route-stat-div"/>
                       <div className="route-stat">
                         <span className="route-stat-val">{formatDur(route.totalDuration)}</span>
                         <span className="route-stat-label">Drive time</span>
                       </div>
-                      <div className="route-stat-div" />
+                      <div className="route-stat-div"/>
                       <div className="route-stat">
                         <span className="route-stat-val">{route.stops.length}</span>
                         <span className="route-stat-label">Stops</span>
@@ -388,7 +394,7 @@ export default function Dashboard() {
                     </div>
                     <div className="route-card-footer">
                       <div className="route-car">
-                        <span className="route-car-dot" />
+                        <span className="route-car-dot"/>
                         {route.car.make} {route.car.model}
                       </div>
                       <span className="route-date">
@@ -419,7 +425,7 @@ export default function Dashboard() {
             <div className="empty-panel">
               <div className="empty-icon">⚡</div>
               <h2 className="empty-title">Charging stations</h2>
-              <p className="empty-desc">Find nearby charging stations with real-time availability.<br />Filter by network, connector type, and charging speed.</p>
+              <p className="empty-desc">Find nearby charging stations with real-time availability.<br/>Filter by network, connector type, and charging speed.</p>
               <button className="btn-create-route-lg" onClick={() => navigate('/stations')}>FIND STATIONS NEAR ME</button>
             </div>
           </div>
@@ -437,29 +443,29 @@ export default function Dashboard() {
               <div className="empty-panel">
                 <div className="empty-icon">◻</div>
                 <h2 className="empty-title">No vehicles added</h2>
-                <p className="empty-desc">Add your EV to get accurate range calculations<br />and personalised charging recommendations.</p>
+                <p className="empty-desc">Add your EV to get accurate range calculations<br/>and personalised charging recommendations.</p>
                 <button className="btn-create-route-lg" onClick={() => navigate('/add-vehicle')}>+ ADD MY VEHICLE</button>
               </div>
             ) : (
               <div className="vehicles-grid">
                 {userCars.map(car => {
-                  const body = car.color || '#1a1a2e';
-                  const dark = shadeColor(body, -40);
+                  const body  = car.color || '#1a1a2e';
+                  const dark  = shadeColor(body, -40);
                   const light = shadeColor(body, 40);
                   return (
                     <div className="vehicle-card" key={car.id}>
                       <div className="vehicle-card-stage">
                         <svg viewBox="0 0 320 160" className="vehicle-card-svg">
-                          <ellipse cx="160" cy="148" rx="130" ry="10" fill="rgba(0,0,0,0.08)" />
-                          <rect x="20" y="80" width="280" height="60" rx="12" fill={body} />
-                          <path d="M60 80 Q85 30 115 28 L205 28 Q240 28 252 80Z" fill={dark} />
-                          <path d="M72 78 Q93 38 115 36 L200 36 Q228 36 242 78Z" fill="#7ec8e3" opacity="0.75" />
-                          <circle cx="75" cy="138" r="22" fill="#111" /><circle cx="75" cy="138" r="13" fill="#333" /><circle cx="75" cy="138" r="5" fill="#555" />
-                          <circle cx="245" cy="138" r="22" fill="#111" /><circle cx="245" cy="138" r="13" fill="#333" /><circle cx="245" cy="138" r="5" fill="#555" />
-                          <rect x="295" y="90" width="8" height="14" rx="4" fill="#fffde7" opacity="0.95" />
-                          <circle cx="24" cy="110" r="5" fill="#3ddc84" opacity="0.95" />
-                          <rect x="20" y="108" width="280" height="3" rx="1.5" fill={light} opacity="0.35" />
-                          <line x1="160" y1="80" x2="160" y2="138" stroke={dark} strokeWidth="1.5" opacity="0.4" />
+                          <ellipse cx="160" cy="148" rx="130" ry="10" fill="rgba(0,0,0,0.08)"/>
+                          <rect x="20" y="80" width="280" height="60" rx="12" fill={body}/>
+                          <path d="M60 80 Q85 30 115 28 L205 28 Q240 28 252 80Z" fill={dark}/>
+                          <path d="M72 78 Q93 38 115 36 L200 36 Q228 36 242 78Z" fill="#7ec8e3" opacity="0.75"/>
+                          <circle cx="75" cy="138" r="22" fill="#111"/><circle cx="75" cy="138" r="13" fill="#333"/><circle cx="75" cy="138" r="5" fill="#555"/>
+                          <circle cx="245" cy="138" r="22" fill="#111"/><circle cx="245" cy="138" r="13" fill="#333"/><circle cx="245" cy="138" r="5" fill="#555"/>
+                          <rect x="295" y="90" width="8" height="14" rx="4" fill="#fffde7" opacity="0.95"/>
+                          <circle cx="24" cy="110" r="5" fill="#3ddc84" opacity="0.95"/>
+                          <rect x="20" y="108" width="280" height="3" rx="1.5" fill={light} opacity="0.35"/>
+                          <line x1="160" y1="80" x2="160" y2="138" stroke={dark} strokeWidth="1.5" opacity="0.4"/>
                         </svg>
                       </div>
                       <div className="vehicle-card-info">
@@ -476,13 +482,13 @@ export default function Dashboard() {
                             <span className="vehicle-stat-unit">km</span>
                             <span className="vehicle-stat-label">Range</span>
                           </div>
-                          <div className="vehicle-stat-div" />
+                          <div className="vehicle-stat-div"/>
                           <div className="vehicle-stat">
                             <span className="vehicle-stat-val">{car.battery}</span>
                             <span className="vehicle-stat-unit">kWh</span>
                             <span className="vehicle-stat-label">Battery</span>
                           </div>
-                          <div className="vehicle-stat-div" />
+                          <div className="vehicle-stat-div"/>
                           <div className="vehicle-stat">
                             <span className="vehicle-stat-val">{car.topSpeed || '—'}</span>
                             <span className="vehicle-stat-unit">km/h</span>
@@ -490,7 +496,7 @@ export default function Dashboard() {
                           </div>
                         </div>
                         <div className="vehicle-card-consumption">
-                          <span className="vehicle-consumption-dot" />
+                          <span className="vehicle-consumption-dot"/>
                           {car.consumption} kWh/100km consumption
                         </div>
                       </div>

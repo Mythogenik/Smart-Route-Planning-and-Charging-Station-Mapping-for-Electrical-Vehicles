@@ -26,7 +26,9 @@ public class FuelEconomyService : IFuelEconomyService
         var root = doc.RootElement;
 
         if (!root.TryGetProperty("range", out var rangeProp)) return null;
-        double rangeMiles = rangeProp.GetDouble();
+        double rangeMiles = rangeProp.ValueKind == JsonValueKind.String
+        ? double.Parse(rangeProp.GetString()!)
+        : rangeProp.GetDouble();
         double rangeKm = rangeMiles * 1.60934;
 
         return batteryCapacityKwh / rangeKm;

@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../context/ThemeContext';
 import './Landing.css';
 
 const STATS = [
@@ -9,6 +10,7 @@ const STATS = [
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className="landing">
@@ -26,6 +28,9 @@ export default function Landing() {
           <a href="#">Vehicles</a>
         </div>
         <div className="nav-auth">
+          <button className="btn-theme-toggle" onClick={toggleTheme} title="Toggle dark mode">
+            {theme === 'dark' ? '☀' : '◑'}
+          </button>
           <button className="btn-login" onClick={() => navigate('/login')}>LOG IN</button>
           <button className="btn-signup" onClick={() => navigate('/signup')}>SIGN UP</button>
         </div>

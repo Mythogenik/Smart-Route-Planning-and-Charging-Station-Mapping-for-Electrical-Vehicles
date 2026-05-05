@@ -44,6 +44,15 @@ body {
 }
 .btn-login:hover { color: var(--green); }
 
+.btn-theme-toggle {
+  background: none; border: 1.5px solid var(--border);
+  color: var(--text-secondary); font-size: 16px;
+  width: 36px; height: 36px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.btn-theme-toggle:hover { border-color: var(--green); color: var(--green); }
+
 .btn-signup {
   background: var(--btn-bg); border: none; color: var(--btn-text);
   font-family: var(--sans); font-size: 13px; font-weight: 800;

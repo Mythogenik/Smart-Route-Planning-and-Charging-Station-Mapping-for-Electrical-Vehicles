@@ -358,6 +358,7 @@ export default function Dashboard() {
                         <span className="route-dest">{route.destination.name}</span>
                       </div>
                       <button className="route-delete" onClick={async (e) => {
+                        e.stopPropagation();
                         if (window.confirm('Delete this route?')) {
                           try {
                             await apiDeleteRoute(route.id);

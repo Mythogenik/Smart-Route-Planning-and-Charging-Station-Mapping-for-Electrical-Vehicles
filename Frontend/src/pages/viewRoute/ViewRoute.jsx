@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getRouteById, formatDuration } from '../../utils/RouteEngine';
+import { formatDuration } from '../../utils/RouteEngine';
 import './ViewRoute.css';
 
 const GOOGLE_KEY = import.meta.env.VITE_GOOGLE_MAPS_KEY;
@@ -28,33 +28,38 @@ function loadGoogleMaps() {
 }
 
 const MAP_STYLES = [
-  { featureType: 'poi',           elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit',       elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'water',         elementType: 'geometry', stylers: [{ color: '#c9d8f0' }] },
-  { featureType: 'landscape',     elementType: 'geometry', stylers: [{ color: '#f4f5f7' }] },
-  { featureType: 'road.highway',  elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
+  { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9d8f0' }] },
+  { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f4f5f7' }] },
+  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
   { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-  { featureType: 'road.local',    elementType: 'geometry', stylers: [{ color: '#f0f0f0' }] },
+  { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#f0f0f0' }] },
 ];
 
 export default function ViewRoute() {
-  const navigate   = useNavigate();
-  const { id }     = useParams();
-  const mapRef     = useRef(null);
-  const mapInst    = useRef(null);
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const mapRef = useRef(null);
+  const mapInst = useRef(null);
   const watchIdRef = useRef(null);
   const userMarker = useRef(null);
 
-  const [route,        setRoute]        = useState(null);
-  const [notFound,     setNotFound]     = useState(false);
-  const [trackingGPS,  setTrackingGPS]  = useState(false);
+  const [route, setRoute] = useState(null);
+  const [notFound, setNotFound] = useState(false);
+  const [trackingGPS, setTrackingGPS] = useState(false);
   const [selectedStop, setSelectedStop] = useState(null);
 
   // Step 1 — load route data
   useEffect(() => {
-    const r = getRouteById(id);
-    if (!r) { setNotFound(true); return; }
-    setRoute(r);
+    import('../../utils/api').then(({ apiGetRouteById, mapRouteFromApi }) => {
+      apiGetRouteById(id)
+        .then(data => {
+          if (data) setRoute(mapRouteFromApi(data));
+          else setNotFound(true);
+        })
+        .catch(() => setNotFound(true));
+    });
   }, [id]);
 
   // Step 2 — init map after route state is set and DOM is painted
@@ -87,15 +92,15 @@ export default function ViewRoute() {
         // draw directions
         new maps.DirectionsService().route(
           {
-            origin:      { lat: route.origin.lat,      lng: route.origin.lng      },
+            origin: { lat: route.origin.lat, lng: route.origin.lng },
             destination: { lat: route.destination.lat, lng: route.destination.lng },
-            travelMode:  maps.TravelMode.DRIVING,
+            travelMode: maps.TravelMode.DRIVING,
           },
           (result, status) => {
             if (status === 'OK') {
               renderer.setDirections(result);
               const bounds = new maps.LatLngBounds();
-              bounds.extend({ lat: route.origin.lat,      lng: route.origin.lng      });
+              bounds.extend({ lat: route.origin.lat, lng: route.origin.lng });
               bounds.extend({ lat: route.destination.lat, lng: route.destination.lng });
               route.stops.forEach(s => bounds.extend({ lat: s.lat, lng: s.lng }));
               map.fitBounds(bounds, 60);
@@ -213,7 +218,7 @@ export default function ViewRoute() {
       <div className="vr-topbar">
         <button className="vr-back" onClick={() => navigate('/Dashboard')}>← Back</button>
         <span className="vr-topbar-title">Route Not Found</span>
-        <div/>
+        <div />
       </div>
       <div className="vr-not-found">
         <span>⟶</span>
@@ -248,7 +253,7 @@ export default function ViewRoute() {
           <div className="vr-summary">
             <div className="vr-summary-row">
               <div className="vr-summary-point">
-                <div className="vr-dot vr-dot-green"/>
+                <div className="vr-dot vr-dot-green" />
                 <div>
                   <div className="vr-point-label">FROM</div>
                   <div className="vr-point-name">{route.origin.name}</div>
@@ -256,10 +261,10 @@ export default function ViewRoute() {
                 </div>
               </div>
             </div>
-            <div className="vr-summary-line"/>
+            <div className="vr-summary-line" />
             <div className="vr-summary-row">
               <div className="vr-summary-point">
-                <div className="vr-dot vr-dot-dark"/>
+                <div className="vr-dot vr-dot-dark" />
                 <div>
                   <div className="vr-point-label">TO</div>
                   <div className="vr-point-name">{route.destination.name}</div>
@@ -274,12 +279,12 @@ export default function ViewRoute() {
               <span className="vr-stat-val">{route.totalDistanceKm} <span className="vr-stat-unit">km</span></span>
               <span className="vr-stat-label">Distance</span>
             </div>
-            <div className="vr-stat-div"/>
+            <div className="vr-stat-div" />
             <div className="vr-stat">
               <span className="vr-stat-val">{formatDuration(route.totalDuration)}</span>
               <span className="vr-stat-label">Drive time</span>
             </div>
-            <div className="vr-stat-div"/>
+            <div className="vr-stat-div" />
             <div className="vr-stat">
               <span className="vr-stat-val">{route.stops.length}</span>
               <span className="vr-stat-label">Stops</span>
@@ -312,7 +317,7 @@ export default function ViewRoute() {
 
               {route.stops.map((stop, i) => (
                 <div key={i}>
-                  <div className="vr-timeline-line"/>
+                  <div className="vr-timeline-line" />
                   <button
                     className={`vr-timeline-item vr-timeline-stop ${selectedStop === stop ? 'selected' : ''} ${!stop.placeId ? 'vr-stop-missing' : ''}`}
                     onClick={() => focusStop(stop)}
@@ -328,7 +333,7 @@ export default function ViewRoute() {
                 </div>
               ))}
 
-              <div className="vr-timeline-line"/>
+              <div className="vr-timeline-line" />
               <div className="vr-timeline-item vr-timeline-dest">
                 <div className="vr-timeline-dot vr-tdot-dark">B</div>
                 <div className="vr-timeline-info">
@@ -348,7 +353,7 @@ export default function ViewRoute() {
         </div>
 
         <div className="vr-map-wrap">
-          <div ref={mapRef} className="vr-map"/>
+          <div ref={mapRef} className="vr-map" />
           {selectedStop && (
             <div className="vr-overlay">
               <div className="vr-overlay-icon">⚡</div>

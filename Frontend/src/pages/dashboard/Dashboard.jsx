@@ -12,6 +12,33 @@ const NAV_ITEMS = [
   { id: 'vehicles', icon: '◻', label: 'My Vehicles' },
 ];
 
+const TUTORIAL_STEPS = [
+  {
+    icon: '⚡',
+    title: 'Welcome to EV Router',
+    desc: "Plan long EV trips with automatic charging stop optimization. Let's get you set up in 3 quick steps.",
+    hint: null,
+  },
+  {
+    icon: '◻',
+    title: 'Add your vehicle',
+    desc: "Head to My Vehicles and add your EV. We'll fetch the specs automatically — range, battery, and consumption.",
+    hint: 'Tip: accurate specs = better charging stop placement.',
+  },
+  {
+    icon: '⟶',
+    title: 'Create your first route',
+    desc: "Hit \"+ Create Route\", enter your start and destination, select your vehicle, and we'll calculate the optimal charging stops.",
+    hint: 'You start with 2 free routes.',
+  },
+  {
+    icon: '🔋',
+    title: 'Top up when you need more',
+    desc: "Once you've used your free routes, head to Account → Top Up Routes to get more. Packages start at $20 for 10 routes.",
+    hint: 'Unlimited plan available for frequent travellers.',
+  },
+];
+
 function shadeColor(hex, pct) {
   try {
     const num = parseInt(hex.replace('#', ''), 16);
@@ -36,6 +63,8 @@ export default function Dashboard() {
   const totalStops = userRoutes.reduce((sum, r) => sum + (r.stops?.length || 0), 0);
 
   const [showRouteGate, setShowRouteGate] = useState(false);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
 
   // load routes from API
   useEffect(() => {
@@ -61,6 +90,7 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', handle);
   }, []);
 
+  // sync routes remaining from API
   useEffect(() => {
     apiGetMe().then(data => {
       if (data?.routesRemaining !== undefined) {
@@ -68,6 +98,28 @@ export default function Dashboard() {
       }
     }).catch(() => { });
   }, []);
+
+  // show tutorial on first signup
+  useEffect(() => {
+    if (localStorage.getItem('ev_show_tutorial') === 'true') {
+      setShowTutorial(true);
+      localStorage.removeItem('ev_show_tutorial');
+    }
+  }, []);
+
+  function handleTutorialNext() {
+    if (tutorialStep < TUTORIAL_STEPS.length - 1) {
+      setTutorialStep(s => s + 1);
+    } else {
+      setShowTutorial(false);
+      setTutorialStep(0);
+    }
+  }
+
+  function handleTutorialSkip() {
+    setShowTutorial(false);
+    setTutorialStep(0);
+  }
 
   function handleLogout() {
     logout();
@@ -101,12 +153,10 @@ export default function Dashboard() {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   }
 
-  // ── CHANGE A: helper to get routes remaining display ──
   const routesRemaining = currentUser?.routesRemaining;
   const routesDisplay = routesRemaining === -1 ? '∞' : (routesRemaining ?? 2);
   const planLabel = routesRemaining === -1 ? 'Unlimited plan' : `${routesDisplay} routes left`;
 
-  // ── CHANGE B: gated navigate for create route ──
   function handleCreateRoute() {
     if (routesRemaining === 0) {
       setShowRouteGate(true);
@@ -172,7 +222,6 @@ export default function Dashboard() {
             <span className="sidebar-stat-label">Vehicles</span>
             <span className="sidebar-stat-val">{userCars.length}</span>
           </div>
-          {/* ── CHANGE A: routes remaining stat ── */}
           <div className="sidebar-stat-row">
             <span className="sidebar-stat-label">Routes remaining</span>
             <span className="sidebar-stat-val" style={{ color: routesRemaining === 0 ? '#ff6b6b' : routesRemaining === -1 ? 'var(--green)' : 'inherit' }}>
@@ -186,7 +235,6 @@ export default function Dashboard() {
             <div className="account-avatar">{initials}</div>
             <div className="account-info">
               <span className="account-email">{fullName || currentUser?.email || 'Guest'}</span>
-              {/* ── CHANGE A: dynamic plan label ── */}
               <span className="account-role">{planLabel}</span>
             </div>
             <span className={`account-chevron ${dropdownOpen ? 'open' : ''}`}>▲</span>
@@ -230,7 +278,6 @@ export default function Dashboard() {
               Welcome back, {currentUser?.firstName || currentUser?.email?.split('@')[0] || 'driver'} 👋
             </span>
           </div>
-          {/* ── CHANGE B: gated create route button ── */}
           <button className="btn-create-route" onClick={handleCreateRoute}>
             + CREATE ROUTE
           </button>
@@ -558,7 +605,6 @@ export default function Dashboard() {
             <div className="account-panel">
               <div className="account-panel-avatar">{initials}</div>
               <h2 className="account-panel-name">{fullName || currentUser?.email}</h2>
-              {/* ── CHANGE C: dynamic plan badge ── */}
               <span className="account-panel-plan">
                 {routesRemaining === -1 ? 'Unlimited Plan' : 'Pay-as-you-go'}
               </span>
@@ -583,7 +629,6 @@ export default function Dashboard() {
                   <span className="account-field-label">Member since</span>
                   <span className="account-field-value">{new Date().toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</span>
                 </div>
-                {/* ── CHANGE C: routes remaining + plan fields ── */}
                 <div className="account-field">
                   <span className="account-field-label">Routes remaining</span>
                   <span className="account-field-value account-field-green">
@@ -597,7 +642,6 @@ export default function Dashboard() {
                   </span>
                 </div>
               </div>
-              {/* ── CHANGE C: top up button ── */}
               <button
                 className="btn-create-route"
                 style={{ width: '100%', marginBottom: '10px', justifyContent: 'center' }}
@@ -611,6 +655,7 @@ export default function Dashboard() {
         )}
 
       </main>
+
       {/* ── ROUTE GATE MODAL ── */}
       {showRouteGate && (
         <div className="gate-overlay" onClick={() => setShowRouteGate(false)}>
@@ -631,6 +676,34 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      {/* ── TUTORIAL MODAL ── */}
+      {showTutorial && (
+        <div className="gate-overlay">
+          <div className="tutorial-modal">
+            <div className="tutorial-progress">
+              {TUTORIAL_STEPS.map((_, i) => (
+                <div key={i} className={`tutorial-pip ${i === tutorialStep ? 'active' : i < tutorialStep ? 'done' : ''}`} />
+              ))}
+            </div>
+            <div className="tutorial-icon">{TUTORIAL_STEPS[tutorialStep].icon}</div>
+            <h2 className="tutorial-title">{TUTORIAL_STEPS[tutorialStep].title}</h2>
+            <p className="tutorial-desc">{TUTORIAL_STEPS[tutorialStep].desc}</p>
+            {TUTORIAL_STEPS[tutorialStep].hint && (
+              <div className="tutorial-hint">{TUTORIAL_STEPS[tutorialStep].hint}</div>
+            )}
+            <div className="gate-actions" style={{ marginTop: '24px' }}>
+              <button className="gate-btn-secondary" onClick={handleTutorialSkip}>
+                Skip
+              </button>
+              <button className="gate-btn-primary" onClick={handleTutorialNext}>
+                {tutorialStep === TUTORIAL_STEPS.length - 1 ? "Let's go!" : 'Next →'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

@@ -1322,3 +1322,65 @@
 .gate-btn-primary:hover {
   opacity: 0.88;
 }
+.tutorial-modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 32px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.tutorial-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tutorial-pip {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+  transition: background 0.2s;
+}
+
+.tutorial-pip.active { background: var(--green); }
+.tutorial-pip.done   { background: var(--green-dark); }
+
+.tutorial-icon {
+  font-size: 40px;
+  line-height: 1;
+  margin: 4px 0;
+}
+
+.tutorial-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.tutorial-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 320px;
+}
+
+.tutorial-hint {
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--green);
+  width: 100%;
+  box-sizing: border-box;
+}

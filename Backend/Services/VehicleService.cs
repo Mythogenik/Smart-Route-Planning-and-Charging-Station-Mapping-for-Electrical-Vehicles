@@ -100,6 +100,10 @@ namespace EvRoutePlanner.Api.Services
 
             if (vehicle == null) return false;
 
+            // delete associated routes first to avoid FK constraint violation
+            var routes = _context.Routes.Where(r => r.VehicleId == vehicleId);
+            _context.Routes.RemoveRange(routes);
+
             _context.Vehicles.Remove(vehicle);
             await _context.SaveChangesAsync();
 

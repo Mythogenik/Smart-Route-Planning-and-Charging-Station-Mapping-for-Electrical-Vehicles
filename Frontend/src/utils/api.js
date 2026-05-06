@@ -70,16 +70,16 @@ export async function apiGetVehicles() {
 
 export async function apiCreateVehicle(vehicle) {
   return request('POST', '/api/vehicles', {
-    brand:              vehicle.make,
-    model:              vehicle.model,
-    batteryCapacity:    vehicle.battery,
-    currentSoc:         100,
+    brand: vehicle.make,
+    model: vehicle.model,
+    batteryCapacity: vehicle.battery,
+    currentSoc: 100,
     averageConsumption: vehicle.consumption,
-    range:              vehicle.range,
-    topSpeed:           vehicle.topSpeed,
-    color:              vehicle.color,
-    year:               vehicle.year,
-    nickname:           vehicle.nickname || '',
+    range: vehicle.range,
+    topSpeed: vehicle.topSpeed,
+    color: vehicle.color,
+    year: vehicle.year,
+    nickname: vehicle.nickname || '',
   });
 }
 
@@ -89,16 +89,16 @@ export async function apiDeleteVehicle(id) {
 
 export async function apiUpdateVehicle(id, vehicle) {
   return request('PUT', `/api/vehicles/${id}`, {
-    brand:              vehicle.make,
-    model:              vehicle.model,
-    batteryCapacity:    vehicle.battery,
-    currentSoc:         vehicle.currentSoc || 100,
+    brand: vehicle.make,
+    model: vehicle.model,
+    batteryCapacity: vehicle.battery,
+    currentSoc: vehicle.currentSoc || 100,
     averageConsumption: vehicle.consumption,
-    range:              vehicle.range,
-    topSpeed:           vehicle.topSpeed,
-    color:              vehicle.color,
-    year:               vehicle.year,
-    nickname:           vehicle.nickname || '',
+    range: vehicle.range,
+    topSpeed: vehicle.topSpeed,
+    color: vehicle.color,
+    year: vehicle.year,
+    nickname: vehicle.nickname || '',
   });
 }
 
@@ -113,27 +113,28 @@ export async function apiGetRouteById(id) {
 
 export async function apiSaveRoute(route, vehicleId) {
   return request('POST', '/api/Route', {
-    vehicleId:          vehicleId,
-    userId:             0, // backend sets this from JWT
-    originLat:          route.origin.lat,
-    originLon:          route.origin.lng,
-    originName:         route.origin.name,
-    originAddress:      route.origin.address,
-    destinationLat:     route.destination.lat,
-    destinationLon:     route.destination.lng,
-    destinationName:    route.destination.name,
+    vehicleId: vehicleId,
+    userId: 0, // backend sets this from JWT
+    originLat: route.origin.lat,
+    originLon: route.origin.lng,
+    originName: route.origin.name,
+    originAddress: route.origin.address,
+    destinationLat: route.destination.lat,
+    destinationLon: route.destination.lng,
+    destinationName: route.destination.name,
     destinationAddress: route.destination.address,
-    stopsJson:          JSON.stringify(route.stops.map(s => ({
-      name:    s.name,
+    stopsJson: JSON.stringify(route.stops.map(s => ({
+      name: s.name,
       address: s.address,
-      lat:     s.lat,
-      lon:     s.lng,
+      lat: s.lat,
+      lon: s.lng,
       placeId: s.placeId || '',
+      distanceFromStartKm: s.distanceFromStartKm,
     }))),
-    totalDistance:  route.totalDistanceKm,
-    totalDuration:  route.totalDuration,
-    safeRange:      route.safeRangeKm,
-    createdAt:      new Date().toISOString(),
+    totalDistance: route.totalDistanceKm,
+    totalDuration: route.totalDuration,
+    safeRange: route.safeRangeKm,
+    createdAt: new Date().toISOString(),
   });
 }
 
@@ -144,55 +145,77 @@ export async function apiDeleteRoute(id) {
 // ── Map backend route to frontend format ──────────
 export function mapRouteFromApi(apiRoute) {
   return {
-    id:             apiRoute.id,
-    ownerEmail:     '',
-    createdAt:      apiRoute.createdAt,
+    id: apiRoute.id,
+    ownerEmail: '',
+    createdAt: apiRoute.createdAt,
     car: {
-      make:        apiRoute.vehicle?.brand,
-      model:       apiRoute.vehicle?.model,
-      battery:     apiRoute.vehicle?.batteryCapacity,
+      make: apiRoute.vehicle?.brand,
+      model: apiRoute.vehicle?.model,
+      battery: apiRoute.vehicle?.batteryCapacity,
       consumption: apiRoute.vehicle?.averageConsumption,
-      range:       apiRoute.vehicle?.range,
+      range: apiRoute.vehicle?.range,
     },
     origin: {
-      name:    apiRoute.originName,
+      name: apiRoute.originName,
       address: apiRoute.originAddress,
-      lat:     apiRoute.originLat,
-      lng:     apiRoute.originLon,
+      lat: apiRoute.originLat,
+      lng: apiRoute.originLon,
     },
     destination: {
-      name:    apiRoute.destinationName,
+      name: apiRoute.destinationName,
       address: apiRoute.destinationAddress,
-      lat:     apiRoute.destinationLat,
-      lng:     apiRoute.destinationLon,
+      lat: apiRoute.destinationLat,
+      lng: apiRoute.destinationLon,
     },
     stops: (apiRoute.stops || []).map(s => ({
-      name:               s.name,
-      address:            s.address,
-      lat:                s.lat,
-      lng:                s.lon,
-      placeId:            s.placeId,
+      name: s.name,
+      address: s.address,
+      lat: s.lat,
+      lng: s.lon,
+      placeId: s.placeId,
       distanceFromStartKm: s.distanceFromStartKm,
     })),
     totalDistanceKm: apiRoute.totalDistance,
-    totalDuration:   apiRoute.totalDuration,
-    safeRangeKm:     apiRoute.safeRange,
+    totalDuration: apiRoute.totalDuration,
+    safeRangeKm: apiRoute.safeRange,
   };
+}
+export async function apiGetMe() {
+  const token = localStorage.getItem('ev_token');
+  const res = await fetch(`${BASE_URL}/api/user/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to fetch user info');
+  return res.json();
+}
+
+export async function apiPurchase(pkg) {
+  const token = localStorage.getItem('ev_token');
+  const res = await fetch(`${BASE_URL}/api/user/purchase`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ package: pkg }),
+  });
+  if (!res.ok) throw new Error('Purchase failed');
+  return res.json();
 }
 
 // ── Map backend vehicle to frontend format ─────────
 export function mapVehicleFromApi(apiVehicle) {
   return {
-    id:          apiVehicle.id,
-    ownerEmail:  '',
-    make:        apiVehicle.brand,
-    model:       apiVehicle.model,
-    year:        apiVehicle.year,
-    color:       apiVehicle.color,
-    nickname:    apiVehicle.nickname,
-    topSpeed:    apiVehicle.topSpeed,
-    range:       apiVehicle.range,
-    battery:     apiVehicle.batteryCapacity,
+    id: apiVehicle.id,
+    ownerEmail: '',
+    make: apiVehicle.brand,
+    model: apiVehicle.model,
+    year: apiVehicle.year,
+    color: apiVehicle.color,
+    nickname: apiVehicle.nickname,
+    topSpeed: apiVehicle.topSpeed,
+    range: apiVehicle.range,
+    battery: apiVehicle.batteryCapacity,
     consumption: apiVehicle.averageConsumption,
   };
 }

@@ -26,12 +26,20 @@ public class FuelEconomyService : IFuelEconomyService
         var root = doc.RootElement;
 
         if (!root.TryGetProperty("range", out var rangeProp)) return null;
-        double rangeMiles = rangeProp.ValueKind == JsonValueKind.String
-        ? double.Parse(rangeProp.GetString()!)
-        : rangeProp.GetDouble();
-        double rangeKm = rangeMiles * 1.60934;
 
-        return batteryCapacityKwh / rangeKm;
+        double rangeMiles = rangeProp.ValueKind == JsonValueKind.String
+            ? double.Parse(rangeProp.GetString()!)
+            : rangeProp.GetDouble();
+
+        double rangeKm = rangeMiles * 1.60934;
+        if (rangeKm <= 0) return null;
+
+        double consumption = (batteryCapacityKwh / rangeKm) * 100;
+
+        // sanity check — must be between 10 and 35 kWh/100km
+        if (consumption < 10 || consumption > 35) return null;
+
+        return Math.Round(consumption, 1);
     }
 
     //public async Task<double?> GetConsumptionKwhPerKmAsync(string brand, string model)

@@ -46,7 +46,8 @@ public class JwtService
             FirstName = user.FirstName,
             LastName = user.LastName,
             PhoneNumber = user.PhoneNumber,
-            ExpiresAt = expires
+            ExpiresAt = expires,
+            RoutesRemaining = user.RoutesRemaining
         };
     }
 }

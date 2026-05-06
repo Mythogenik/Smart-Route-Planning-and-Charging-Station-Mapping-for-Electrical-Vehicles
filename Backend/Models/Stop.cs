@@ -15,6 +15,6 @@ namespace EvRoutePlanner.Api.Models
         public required double lat { get; set; }
         public required double lon { get; set; }
         public string placeId { get; set; } = null!;
-
+        public double distanceFromStartKm { get; set; }
     }
 }

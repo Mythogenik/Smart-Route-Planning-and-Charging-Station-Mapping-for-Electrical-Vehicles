@@ -30,7 +30,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             errorNumbersToAdd: null);
     }));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = 
+            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 //builder.Services.AddOpenApi();
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddScoped<JwtService>();

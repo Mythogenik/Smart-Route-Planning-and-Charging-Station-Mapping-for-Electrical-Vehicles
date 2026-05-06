@@ -16,37 +16,41 @@ namespace EvRoutePlanner.Api.Services
         }
 
         public async Task<Models.Route> SaveRouteAsync(SaveRouteDto dto, int userId)
-{
-    var vehicle = await _context.Vehicles
-        .FirstOrDefaultAsync(v => v.Id == dto.VehicleId && v.UserId == userId);
+        {
+            var vehicle = await _context.Vehicles
+                .FirstOrDefaultAsync(v => v.Id == dto.VehicleId && v.UserId == userId);
 
-    if (vehicle == null)
-        throw new InvalidOperationException("Vehicle not found or does not belong to the user");
+            if (vehicle == null)
+                throw new InvalidOperationException("Vehicle not found or does not belong to the user");
 
-    var route = new Models.Route
-    {
-        VehicleId =          dto.VehicleId,
-        Vehicle =            vehicle,
-        UserId =             userId,
-        CreatedAt =          dto.CreatedAt,
-        OriginLat =          dto.OriginLat,
-        OriginLon =          dto.OriginLon,
-        OriginName =         dto.OriginName,
-        OriginAddress =      dto.OriginAddress,
-        DestinationLat =     dto.DestinationLat,
-        DestinationLon =     dto.DestinationLon,
-        DestinationName =    dto.DestinationName,
-        DestinationAddress = dto.DestinationAddress,
-        StopsJson =          dto.StopsJson,
-        TotalDistance =      dto.TotalDistance,
-        TotalDuration =      dto.TotalDuration,
-        safeRange =          dto.SafeRange,
-    };
+            var route = new Models.Route
+            {
+                VehicleId          = dto.VehicleId,
+                UserId             = userId,
+                CreatedAt          = dto.CreatedAt ?? DateTime.UtcNow.ToString("o"),
+                OriginLat          = dto.OriginLat,
+                OriginLon          = dto.OriginLon,
+                OriginName         = dto.OriginName,
+                OriginAddress      = dto.OriginAddress,
+                DestinationLat     = dto.DestinationLat,
+                DestinationLon     = dto.DestinationLon,
+                DestinationName    = dto.DestinationName,
+                DestinationAddress = dto.DestinationAddress,
+                StopsJson          = dto.StopsJson ?? "[]",
+                TotalDistance      = dto.TotalDistance,
+                TotalDuration      = dto.TotalDuration,
+                safeRange          = dto.SafeRange,
+            };
 
-        _context.Routes.Add(route);
-        await _context.SaveChangesAsync();
-        return route;
-    }
+            _context.Routes.Add(route);
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null && user.RoutesRemaining > 0)
+                user.RoutesRemaining--;
+
+            await _context.SaveChangesAsync();
+            return route;
+        }
 
         public async Task<IEnumerable<Models.Route>> GetUserRoutesAsync(int userId)
         {

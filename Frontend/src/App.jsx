@@ -7,6 +7,7 @@ import CreateRoute from './pages/CreateRoute/CreateRoute';
 import AddVehicle  from './pages/AddVehicle/AddVehicle';
 import Stations    from './pages/Stations/Stations';
 import ViewRoute   from './pages/ViewRoute/ViewRoute';
+import Payment     from './pages/payment/Payment';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/add-vehicle"   element={<AddVehicle />}  />
         <Route path="/stations"      element={<Stations />}    />
         <Route path="/route/:id"     element={<ViewRoute />}   />
+        <Route path="/payment"       element={<Payment />}     />
       </Routes>
     </BrowserRouter>
   );

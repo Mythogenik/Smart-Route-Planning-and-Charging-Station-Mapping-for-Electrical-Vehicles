@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj": {}
+    "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\backend\\EvRoutePlanner.Api.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj": {
+    "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\backend\\EvRoutePlanner.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj",
+        "projectUniqueName": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\backend\\EvRoutePlanner.Api.csproj",
         "projectName": "EvRoutePlanner.Api",
-        "projectPath": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\EvRoutePlanner.Api.csproj",
+        "projectPath": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\backend\\EvRoutePlanner.Api.csproj",
         "packagesPath": "C:\\Users\\Gokha\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\Backend\\obj\\",
+        "outputPath": "C:\\Users\\Gokha\\OneDrive\\Masaüstü\\Projects\\Senior-Development-Project\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Gokha\\AppData\\Roaming\\NuGet\\NuGet.Config"

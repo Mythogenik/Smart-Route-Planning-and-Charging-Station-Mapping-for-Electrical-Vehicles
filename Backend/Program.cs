@@ -11,20 +11,17 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- FIX 1: UPDATE CORS POLICY ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173", 
-                "http://localhost:5174",
-                "https://smart-route-planning-and-charging-2ann.onrender.com" // Add your live Render URL here
-              )
+        policy.WithOrigins("https://smart-route-planning-and-charging-2ann.onrender.com") // Must match your frontend URL exactly
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
+
+app.UseCors("AllowFrontend");
 
 // --- FIX: Change 'errorNumbersToRetry' to 'errorCodesToAdd' or remove it ---
 builder.Services.AddDbContext<AppDbContext>(options =>

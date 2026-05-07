@@ -2,11 +2,11 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Landing } from './pages';
 import { Login }   from './pages';
 import { Signup }  from './pages';
-import Dashboard   from './pages/Dashboard/Dashboard';
-import CreateRoute from './pages/CreateRoute/CreateRoute';
-import AddVehicle  from './pages/AddVehicle/AddVehicle';
-import Stations    from './pages/Stations/Stations';
-import ViewRoute   from './pages/ViewRoute/ViewRoute';
+import Dashboard   from './pages/dashboard/Dashboard';
+import CreateRoute from './pages/createRoute/CreateRoute';
+import AddVehicle  from './pages/addVehicle/AddVehicle';
+import Stations    from './pages/stations/Stations';
+import ViewRoute   from './pages/viewRoute/ViewRoute';
 import Payment     from './pages/payment/Payment';
 
 export default function App() {

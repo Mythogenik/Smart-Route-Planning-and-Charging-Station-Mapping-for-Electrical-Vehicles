@@ -11,26 +11,24 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. SERVICES CONFIGURATION
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://smart-route-planning-and-charging-2ann.onrender.com") // Must match your frontend URL exactly
+        policy.WithOrigins("https://smart-route-planning-and-charging-2ann.onrender.com")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
-app.UseCors("AllowFrontend");
-
-// --- FIX: Change 'errorNumbersToRetry' to 'errorCodesToAdd' or remove it ---
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), npgsqlOptionsAction: npgsqlOptions =>
     {
         npgsqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorCodesToAdd: null); // Changed from errorNumbersToRetry
+            maxRetryCount: 5, 
+            maxRetryDelay: TimeSpan.FromSeconds(30), 
+            errorCodesToAdd: null);
     }));
 
 builder.Services.AddControllers()
@@ -44,8 +42,6 @@ builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSet
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
-
-builder.Services.AddEndpointsApiExplorer();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
 builder.Services.AddAuthentication(options =>
@@ -71,15 +67,10 @@ builder.Services.AddAuthentication(options =>
 });
 
 builder.Services.AddAuthorization();
-
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "EV Smart Route Planner API",
-        Version = "v1"
-    });
-
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EV Smart Route Planner API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -89,7 +80,6 @@ builder.Services.AddSwaggerGen(c =>
         In = ParameterLocation.Header,
         Description = "Enter 'Bearer <token>'"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -129,21 +119,17 @@ builder.Services.AddHttpClient<IFuelEconomyService, FuelEconomyService>();
 builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
 
+// 2. APP BUILD & MIDDLEWARE PIPELINE
 var app = builder.Build();
 
-// Enable Swagger in Production for testing if you want, 
-// but usually it's kept in Development. 
-// If you want to see the Swagger page on Render, remove the IsDevelopment() check.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Always enable Swagger in production for this phase so you can test the backend directly
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
 app.UseRouting();
 
-// CORS MUST be after UseRouting and before UseAuthentication/Authorization
+// MIDDLEWARE ORDER: Routing -> CORS -> Auth
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();

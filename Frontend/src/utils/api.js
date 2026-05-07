@@ -4,7 +4,7 @@
  * Handles JWT token, request/response, and errors.
  */
 
-const BASE_URL = 'http://localhost:5119';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5119';
 
 // ── Token helpers ─────────────────────────────────
 export function getToken() {

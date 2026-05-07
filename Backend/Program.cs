@@ -26,14 +26,14 @@ builder.Services.AddCors(options =>
     });
 });
 
-// --- FIX 2: SWITCH FROM SQL SERVER TO POSTGRES ---
+// --- FIX: Change 'errorNumbersToRetry' to 'errorCodesToAdd' or remove it ---
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), npgsqlOptionsAction: npgsqlOptions =>
     {
         npgsqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,
             maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToRetry: null);
+            errorCodesToAdd: null); // Changed from errorNumbersToRetry
     }));
 
 builder.Services.AddControllers()
@@ -68,7 +68,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtSettings.Issuer,
         ValidAudience = jwtSettings.Audience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret ?? "temporary_secret_key_for_build")),
         RoleClaimType = ClaimTypes.Role
     };
 });

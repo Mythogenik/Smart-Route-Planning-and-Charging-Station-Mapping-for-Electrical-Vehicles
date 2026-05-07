@@ -10,24 +10,30 @@ using System.Security.Claims;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// --- FIX 1: UPDATE CORS POLICY ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:5174")
+        policy.WithOrigins(
+                "http://localhost:5173", 
+                "http://localhost:5174",
+                "https://smart-route-planning-and-charging-2ann.onrender.com" // Add your live Render URL here
+              )
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
+// --- FIX 2: SWITCH FROM SQL SERVER TO POSTGRES ---
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), sqlServerOptionsAction: sqlOptions =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), npgsqlOptionsAction: npgsqlOptions =>
     {
-        // 
-        sqlOptions.EnableRetryOnFailure(
+        npgsqlOptions.EnableRetryOnFailure(
             maxRetryCount: 5,
             maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null);
+            errorNumbersToRetry: null);
     }));
 
 builder.Services.AddControllers()
@@ -36,15 +42,13 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.ReferenceHandler = 
             System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     });
-//builder.Services.AddOpenApi();
+
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddEndpointsApiExplorer();
-
-
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
 builder.Services.AddAuthentication(options =>
@@ -71,8 +75,6 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-
-builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -108,6 +110,7 @@ builder.Services.AddHttpClient("Nominatim", client =>
     client.BaseAddress = new Uri("https://nominatim.openstreetmap.org/");
     client.DefaultRequestHeaders.Add("User-Agent", "EV-Route-Planner/1.0");
 });
+
 builder.Services.AddHttpClient<IOpenChargeMapService, OpenChargeMapService>(client =>
 {
     client.BaseAddress = new Uri("https://api.openchargemap.io/");
@@ -129,30 +132,21 @@ builder.Services.AddHttpClient<IFuelEconomyService, FuelEconomyService>();
 builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
 builder.Services.AddScoped<IRouteService, RouteService>();
 
-//builder.Services.AddScoped<ISeedingService, SeedingService>();
-
-
 var app = builder.Build();
 
-//using (var scope = app.Services.CreateScope())
-//{
-//    var seedingService = scope.ServiceProvider.GetRequiredService<ISeedingService>();
-//    await seedingService.EnsureAdminUserExists();
-//}
-
-//if (app.Environment.IsDevelopment())
-//{
-//    app.MapOpenApi();
-//}
+// Enable Swagger in Production for testing if you want, 
+// but usually it's kept in Development. 
+// If you want to see the Swagger page on Render, remove the IsDevelopment() check.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-
 app.UseHttpsRedirection();
 app.UseRouting();
+
+// CORS MUST be after UseRouting and before UseAuthentication/Authorization
 app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
@@ -161,4 +155,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
